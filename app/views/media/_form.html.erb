@@ -1,0 +1,92 @@
+<%= form_with(model: media, local: true, html: { data: { controller: "cover-search submit-status" } }) do |form| %>
+  <%= form.hidden_field :cover_url, data: { cover_search_target: "urlInput" } %>
+  <% if media.errors.any? %>
+    <div class="error-messages">
+      <h2><%= pluralize(media.errors.count, "error") %> prohibited this media from being saved:</h2>
+      <ul>
+        <% media.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-group">
+    <%= form.label :media_type_id, "Format / Media Type", class: "form-label" %>
+    <%= form.collection_select :media_type_id, MediaType.all, :id, :name, { prompt: "Select a format..." }, { class: "form-control" } %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :cover_image, "Cover Image", class: "form-label" %>
+    <%= form.file_field :cover_image, class: "form-control" %>
+    
+    <div style="display: flex; gap: 0.75rem; align-items: center; margin-top: 0.5rem; flex-wrap: wrap;">
+      <button type="button" class="btn btn-secondary btn-sm" data-action="click->cover-search#search">🔍 Search Cover Online</button>
+      <div data-cover-search-target="preview">
+        <% if media.cover_image.attached? %>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <%= image_tag media.cover_image, style: "width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid var(--panel-border);" %>
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Current cover image</span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    <div data-cover-search-target="results"></div>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :title, class: "form-label" %>
+    <%= form.text_field :title, class: "form-control", placeholder: "e.g., The Dark Side of the Moon", data: { cover_search_target: "title" } %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :artist, class: "form-label" %>
+    <%= form.text_field :artist, class: "form-control", placeholder: "e.g., Pink Floyd", data: { cover_search_target: "artist" } %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :release_year, "Release Year", class: "form-label" %>
+    <%= form.number_field :release_year, class: "form-control", placeholder: "e.g., 1973" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :catalog_number, "Catalog Number", class: "form-label" %>
+    <%= form.text_field :catalog_number, class: "form-control", placeholder: "e.g., CDP 7 46001 2" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :barcode, class: "form-label" %>
+    <%= form.text_field :barcode, class: "form-control", placeholder: "e.g., 077774600121" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :notes, class: "form-label" %>
+    <%= form.text_area :notes, rows: 4, class: "form-control", placeholder: "Add details about this specific pressing, condition, shelf location..." %>
+  </div>
+
+  <div class="form-actions">
+    <a href="<%= media_index_path %>" class="btn btn-secondary">Cancel</a>
+    <%= form.submit class: "btn btn-primary", data: { submit_status_target: "submitButton" } %>
+  </div>
+
+  <!-- Submission Progress Modal -->
+  <div data-submit-status-target="modal" class="submit-modal-overlay">
+    <div class="submit-modal-content">
+      <div class="submit-modal-header">
+        <div class="spinner"></div>
+        <h3>Processing Media</h3>
+      </div>
+      <ul class="submit-steps-list">
+        <li data-submit-status-target="validationStep" class="step-pending">
+          <span class="step-icon">⏳</span> Validating details...
+        </li>
+        <li data-submit-status-target="imageStep" class="step-pending">
+          <span class="step-icon">⏳</span> Processing cover image (600x600)...
+        </li>
+        <li data-submit-status-target="saveStep" class="step-pending">
+          <span class="step-icon">⏳</span> Saving to database...
+        </li>
+      </ul>
+    </div>
+  </div>
+<% end %>

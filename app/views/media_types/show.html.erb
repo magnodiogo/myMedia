@@ -1,0 +1,56 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><%= @media_type.name %></h1>
+    <p class="page-subtitle">Format overview and item catalog</p>
+  </div>
+  <div style="display: flex; gap: 0.5rem;">
+    <a href="<%= edit_media_type_path(@media_type) %>" class="btn btn-secondary">Edit Format</a>
+    <a href="<%= media_types_path %>" class="btn btn-secondary">Back</a>
+  </div>
+</div>
+
+<div class="stats-grid" style="margin-bottom: 2rem;">
+  <div class="stat-card">
+    <div class="stat-label">Total Items in Format</div>
+    <div class="stat-value"><%= @media.count %></div>
+  </div>
+</div>
+
+<div class="section-box" style="margin-bottom: 2rem;">
+  <h3 style="border: none; margin-bottom: 0.5rem; padding-bottom: 0; font-size: 1.1rem; color: #a5b4fc;">Description</h3>
+  <p style="color: var(--text-muted); line-height: 1.6; font-size: 0.95rem;"><%= @media_type.description.presence || "No description provided for this format." %></p>
+</div>
+
+<div class="section-box">
+  <h3>Items in this Format</h3>
+  <% if @media.any? %>
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Artist</th>
+          <th>Year</th>
+          <th>Catalog Number</th>
+          <th style="text-align: right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @media.each do |item| %>
+          <tr>
+            <td style="font-weight: 600; color: var(--text-main);"><%= item.title %></td>
+            <td style="color: var(--text-muted);"><%= item.artist %></td>
+            <td style="color: var(--text-muted);"><%= item.release_year %></td>
+            <td style="font-family: monospace; color: var(--text-muted);"><%= item.catalog_number %></td>
+            <td style="text-align: right;">
+              <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                <a href="<%= media_path(item) %>" class="btn btn-secondary btn-sm">Details</a>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p style="color: var(--text-muted); padding: 1rem 0;">No items in this format yet.</p>
+  <% end %>
+</div>

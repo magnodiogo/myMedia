@@ -1,0 +1,82 @@
+<div data-controller="view-toggle">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Media Collection</h1>
+      <p class="page-subtitle">Browse and manage your media catalog</p>
+    </div>
+    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+      <div class="view-toggle-group">
+        <button class="view-toggle-btn" data-action="click->view-toggle#setDetailed" data-view-toggle-target="detailedBtn">
+          📝 Detailed
+        </button>
+        <button class="view-toggle-btn" data-action="click->view-toggle#setSimple" data-view-toggle-target="simpleBtn">
+          🖼️ Simple
+        </button>
+      </div>
+      <a href="<%= new_media_path %>" class="btn btn-primary">+ Add Media</a>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="section-box" style="margin-bottom: 2rem; padding: 1.25rem 2rem;">
+    <%= form_with(url: media_index_path, method: :get, local: true, style: "display: flex; gap: 1rem; align-items: center;") do |form| %>
+      <%= form.text_field :search, value: @query, placeholder: "Search by title or artist...", class: "form-control", style: "flex: 1;" %>
+      <%= form.submit "Search", class: "btn btn-secondary", name: nil %>
+      <% if @query.present? %>
+        <a href="<%= media_index_path %>" class="btn btn-secondary">Clear</a>
+      <% end %>
+    <% end %>
+  </div>
+
+  <% if @media.any? %>
+    <div class="catalog-grid" data-view-toggle-target="grid">
+      <% @media.each do |media| %>
+        <div class="media-card">
+          <% if media.cover_image.attached? %>
+            <a href="<%= media_path(media) %>" class="media-card-cover-link">
+              <div class="media-card-cover-container">
+                <%= image_tag media.cover_image, class: "media-card-cover" %>
+              </div>
+            </a>
+          <% else %>
+            <a href="<%= media_path(media) %>" class="media-card-cover-link">
+              <div class="media-card-cover-container media-card-cover-placeholder">
+                <span class="placeholder-icon">🎵</span>
+              </div>
+            </a>
+          <% end %>
+
+          <div class="media-card-content">
+            <div class="media-card-header">
+              <span class="media-badge"><%= media.media_type.name %></span>
+              <h2 class="media-title"><%= media.title %></h2>
+              <p class="media-artist"><%= media.artist %></p>
+            </div>
+
+            <div>
+              <div class="media-meta">
+                <% if media.release_year.present? %>
+                  <span>📅 <%= media.release_year %></span>
+                <% end %>
+                <% if media.catalog_number.present? %>
+                  <span style="font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"># <%= media.catalog_number %></span>
+                <% end %>
+              </div>
+
+              <div class="media-actions">
+                <a href="<%= media_path(media) %>" class="btn btn-secondary btn-sm">Details</a>
+                <a href="<%= edit_media_path(media) %>" class="btn btn-secondary btn-sm">Edit</a>
+                <%= button_to "Delete", media_path(media), method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-danger btn-sm" %>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+<% else %>
+  <div class="section-box" style="text-align: center; padding: 4rem 2rem;">
+    <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 1.5rem;">No media items found in your collection.</p>
+    <a href="<%= new_media_path %>" class="btn btn-primary">+ Add Your First Media</a>
+  </div>
+<% end %>
+</div>

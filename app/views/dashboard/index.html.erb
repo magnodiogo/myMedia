@@ -1,0 +1,72 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle">Overview of your media collection</p>
+  </div>
+  <a href="<%= new_media_path %>" class="btn btn-primary">+ Add Media</a>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">Total Media</div>
+    <div class="stat-value"><%= @total_media %></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Media Types</div>
+    <div class="stat-value"><%= @total_types %></div>
+  </div>
+</div>
+
+<div class="dashboard-sections">
+  <div class="section-box">
+    <h3>
+      <span>Latest Additions</span>
+      <a href="<%= media_index_path %>" class="btn btn-secondary btn-sm">View All</a>
+    </h3>
+
+    <% if @latest_media.any? %>
+      <div class="dashboard-list">
+        <% @latest_media.each do |media| %>
+          <div class="dashboard-item">
+            <div style="display: flex; align-items: center; gap: 1rem; flex: 1;">
+              <% if media.cover_image.attached? %>
+                <%= image_tag media.cover_image, style: "width: 40px; height: 40px; border-radius: 6px; object-fit: cover; border: 1px solid var(--panel-border); flex-shrink: 0;" %>
+              <% else %>
+                <div class="media-card-cover-placeholder" style="width: 40px; height: 40px; border-radius: 6px; border: 1px solid var(--panel-border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(20, 26, 45, 0.8) 0%, rgba(30, 41, 59, 0.8) 100%);">
+                  <span style="font-size: 1.1rem; opacity: 0.4;">🎵</span>
+                </div>
+              <% end %>
+
+              <div class="dashboard-item-info">
+                <span class="dashboard-item-title"><%= media.title %></span>
+                <span class="dashboard-item-subtitle"><%= media.artist %> • <%= media.release_year %></span>
+              </div>
+            </div>
+            <div>
+              <span class="media-badge"><%= media.media_type.name %></span>
+              <a href="<%= media_path(media) %>" class="btn btn-secondary btn-sm">Details</a>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p style="color: var(--text-muted);">No media items added yet. Click "+ Add Media" to start your collection!</p>
+    <% end %>
+  </div>
+
+  <div class="section-box">
+    <h3>
+      <span>Formats</span>
+      <a href="<%= media_types_path %>" class="btn btn-secondary btn-sm">Manage</a>
+    </h3>
+
+    <div class="dashboard-list">
+      <% @media_types_with_count.each do |(id, name), count| %>
+        <div class="dashboard-item">
+          <span class="dashboard-item-title"><%= name %></span>
+          <span class="media-badge" style="margin-bottom: 0;"><%= count %> items</span>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
