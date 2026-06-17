@@ -1,0 +1,19 @@
+<turbo-frame id="<%= dom_id(@track) %>" class="track-row" style="display: table-row;">
+  <div colspan="4" style="display: table-cell; vertical-align: middle; padding: 0.5rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.03);">
+    <%= form_with(model: [ @media, @track ], local: false, class: "track-edit-row-form") do |f| %>
+      <div class="track-edit-row-field field-number">
+        <%= f.number_field :track_number, min: 1, class: "form-control", style: "height: 34px; padding: 0.25rem 0.5rem; font-size: 0.9rem;" %>
+      </div>
+      <div class="track-edit-row-field field-title">
+        <%= f.text_field :title, class: "form-control", style: "height: 34px; padding: 0.25rem 0.5rem; font-size: 0.9rem;", placeholder: "Track Title", required: true %>
+      </div>
+      <div class="track-edit-row-field field-duration">
+        <%= f.text_field :duration, class: "form-control", style: "height: 34px; padding: 0.25rem 0.5rem; font-size: 0.9rem;", placeholder: "MM:SS" %>
+      </div>
+      <div class="track-edit-row-actions">
+        <%= f.submit "Save", class: "btn btn-primary btn-sm", style: "height: 34px; line-height: 1;" %>
+        <%= link_to "Cancel", media_path(@media), class: "btn btn-secondary btn-sm", style: "height: 34px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; text-decoration: none;", data: { turbo_frame: dom_id(@track) } %>
+      </div>
+    <% end %>
+  </div>
+</turbo-frame>

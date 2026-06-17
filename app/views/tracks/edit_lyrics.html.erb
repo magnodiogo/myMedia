@@ -1,0 +1,18 @@
+<turbo-frame id="lyrics_frame">
+  <%= form_with(model: [ @media, @track ], url: update_lyrics_media_track_path(@media, @track), method: :patch, local: false, class: "lyrics-form") do |f| %>
+    <% if @track.errors.any? %>
+      <div style="color: #ef4444; margin-bottom: 1rem; font-size: 0.9rem; font-weight: 500;">
+        ⚠️ <%= @track.errors.full_messages.to_sentence %>
+      </div>
+    <% end %>
+
+    <div class="form-group" style="margin-bottom: 1.5rem;">
+      <%= f.text_area :lyrics, class: "lyrics-textarea", placeholder: "Type or paste song lyrics here...", autocomplete: "off" %>
+    </div>
+
+    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+      <button type="button" class="btn btn-secondary" data-action="click->lyrics-modal#close">Cancel</button>
+      <%= f.submit "Save Lyrics", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</turbo-frame>

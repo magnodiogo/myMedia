@@ -9,6 +9,15 @@ Rails.application.routes.draw do
   get "media/global_search", to: "media#global_search", as: :global_search_media
   post "media/:id/add_to_collection", to: "media#add_to_collection", as: :add_to_collection_media
   post "media/import_and_add", to: "media#import_and_add", as: :import_and_add_media
-  resources :media
+  resources :media do
+    resources :tracks, only: [:create, :edit, :update, :destroy] do
+      member do
+        get :edit_lyrics
+        patch :update_lyrics
+      end
+    end
+  end
+
+
   post "sessions/switch_user", to: "sessions#switch_user", as: :switch_user_sessions
 end

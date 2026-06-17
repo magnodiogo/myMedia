@@ -1,0 +1,17 @@
+<%= form_with(model: [ media, track ], local: false, id: "new_track_form", class: "track-inline-form") do |f| %>
+  <div class="track-form-grid">
+    <div class="track-form-field track-field-number">
+      <%= f.label :track_number, "No." %>
+      <%= f.number_field :track_number, min: 1, class: "form-control", style: "height: 38px;" %>
+    </div>
+    <div class="track-form-field track-field-title">
+      <%= f.label :title, "Track Title" %>
+      <%= f.text_field :title, placeholder: "e.g. Samba de Uma Nota Só", class: "form-control", style: "height: 38px;", required: true %>
+    </div>
+    <div class="track-form-field track-field-duration">
+      <%= f.label :duration, "Duration (MM:SS)" %>
+      <%= f.text_field :duration, placeholder: "e.g. 3:45", class: "form-control", style: "height: 38px;" %>
+    </div>
+    <%= f.submit "Add Track", class: "btn btn-primary", style: "height: 38px; padding: 0 1.5rem;" %>
+  </div>
+<% end %>

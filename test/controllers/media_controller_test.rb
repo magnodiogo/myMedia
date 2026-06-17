@@ -12,7 +12,9 @@ class MediaControllerTest < ActionDispatch::IntegrationTest
       barcode: "077774600121",
       notes: "First pressing"
     )
+    UserMedia.create!(user: users(:one), media: @media)
   end
+
 
   test "should get index" do
     get media_index_url

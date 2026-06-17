@@ -1,0 +1,22 @@
+<%= turbo_stream.replace "lyrics_frame" do %>
+  <turbo-frame id="lyrics_frame">
+    <div style="text-align: center; padding: 2.5rem 1.5rem;">
+      <span style="font-size: 3rem; display: block; margin-bottom: 1rem; animation: pulse 1s infinite alternate;">✅</span>
+      <h3 style="color: #34d399; margin-bottom: 0.5rem; font-weight: 600; font-size: 1.25rem;">Lyrics Saved!</h3>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">The song lyrics were successfully updated.</p>
+    </div>
+  </turbo-frame>
+<% end %>
+
+<%= turbo_stream.append "lyrics-modal" do %>
+  <script>
+    setTimeout(() => {
+      const modal = document.getElementById("lyrics-modal");
+      if (modal) {
+        modal.style.display = "none";
+        const frame = modal.querySelector("turbo-frame");
+        if (frame) frame.src = "";
+      }
+    }, 1200);
+  </script>
+<% end %>

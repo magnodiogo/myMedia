@@ -1,4 +1,4 @@
-<div class="media-detail-container">
+<div class="media-detail-container" data-controller="lyrics-modal">
   <% if @media.cover_image.attached? %>
     <div class="media-detail-backdrop" style="background-image: url('<%= rails_blob_path(@media.cover_image) %>');"></div>
   <% end %>
@@ -61,11 +61,73 @@
           <div class="spec-notes">
             <h3>Collector Notes</h3>
             <div class="collector-notes-content">
-              <span class="notes-quote-mark">“</span>
+              <span class="notes-quote-mark">"</span>
               <p><%= @media.notes %></p>
             </div>
           </div>
         <% end %>
+      </div>
+    </div>
+
+    <!-- Bottom Tabs Card -->
+    <div class="detail-tabs-card" data-controller="tabs">
+      <div class="tabs-header">
+        <button class="tab-link active" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="tracks">
+          🎵 Tracks
+        </button>
+        <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="notes">
+          📝 Collector Notes
+        </button>
+      </div>
+
+      <!-- Tracks Panel -->
+      <div class="tab-panel" data-tabs-target="panel" data-tab-id="tracks">
+        <div class="track-table-container">
+          <div class="track-table" style="display: table; width: 100%;">
+            <div class="track-table-header" style="display: table-row; font-weight: bold; border-bottom: 1px solid var(--panel-border);">
+              <div style="display: table-cell; padding: 0.75rem 1rem; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;">No.</div>
+              <div style="display: table-cell; padding: 0.75rem 1rem; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;">Track Title</div>
+              <div style="display: table-cell; padding: 0.75rem 1rem; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; text-align: right;">Duration</div>
+              <div style="display: table-cell; padding: 0.75rem 1rem; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; text-align: right;">Actions</div>
+            </div>
+            
+            <div id="tracks_list" style="display: table-row-group;">
+              <%= render partial: "tracks/track", collection: @media.tracks, as: :track, locals: { media: @media } %>
+            </div>
+          </div>
+        </div>
+
+        <div id="new_track_form_wrapper" class="track-inline-form-wrapper">
+          <h4 class="track-inline-form-title">⚡ Add New Track</h4>
+          <%= render partial: "tracks/form", locals: { media: @media, track: @media.tracks.build(track_number: @media.tracks.maximum(:track_number).to_i + 1) } %>
+        </div>
+      </div>
+
+      <!-- Notes Panel -->
+      <div class="tab-panel" data-tabs-target="panel" data-tab-id="notes" style="display: none;">
+        <% if @media.notes.present? %>
+          <div class="collector-notes-content" style="margin-top: 0; padding: 1.5rem; background: rgba(255, 255, 255, 0.01); border-radius: var(--border-radius); border: 1px solid var(--panel-border);">
+            <span class="notes-quote-mark" style="font-size: 3.5rem; line-height: 1; color: var(--primary-color); opacity: 0.2; float: left; margin-right: 0.5rem; margin-top: -1rem;">"</span>
+            <p style="margin: 0; color: var(--text-color); font-size: 1.05rem; line-height: 1.6; font-style: italic;"><%= @media.notes %></p>
+          </div>
+        <% else %>
+          <p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No collector notes registered for this media.</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lyrics Modal — fora de qualquer container com overflow:hidden para position:fixed funcionar -->
+  <div id="lyrics-modal" class="modal-overlay" data-lyrics-modal-target="modal">
+    <div class="modal-content" style="max-width: 650px;">
+      <div class="modal-header">
+        <h2 data-lyrics-modal-target="title">Edit Lyrics</h2>
+        <button type="button" class="modal-close-btn" data-action="click->lyrics-modal#close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <turbo-frame id="lyrics_frame" data-lyrics-modal-target="frame">
+          <p style="color: var(--text-muted); text-align: center; padding: 2rem 0;">Loading...</p>
+        </turbo-frame>
       </div>
     </div>
   </div>

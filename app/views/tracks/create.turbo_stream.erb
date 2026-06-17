@@ -1,0 +1,19 @@
+<% if @track.persisted? %>
+  <%= turbo_stream.append "tracks_list", partial: "tracks/track", locals: { media: @media, track: @track } %>
+  <%= turbo_stream.replace "new_track_form_wrapper" do %>
+    <div id="new_track_form_wrapper" class="track-inline-form-wrapper">
+      <h4 class="track-inline-form-title">⚡ Add New Track</h4>
+      <%= render partial: "tracks/form", locals: { media: @media, track: @media.tracks.build(track_number: @media.tracks.maximum(:track_number).to_i + 1) } %>
+    </div>
+  <% end %>
+<% else %>
+  <%= turbo_stream.replace "new_track_form_wrapper" do %>
+    <div id="new_track_form_wrapper" class="track-inline-form-wrapper">
+      <h4 class="track-inline-form-title">⚡ Add New Track</h4>
+      <div style="margin-bottom: 1rem; color: #ef4444; font-size: 0.9rem; font-weight: 500;">
+        ⚠️ <%= @track.errors.full_messages.to_sentence %>
+      </div>
+      <%= render partial: "tracks/form", locals: { media: @media, track: @track } %>
+    </div>
+  <% end %>
+<% end %>

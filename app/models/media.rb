@@ -6,6 +6,8 @@ class Media < ApplicationRecord
 
   has_many :user_media, class_name: "UserMedia", dependent: :destroy
   has_many :users, through: :user_media
+  has_many :tracks, -> { order(track_number: :asc) }, dependent: :destroy
+
 
   attr_accessor :cover_url
 
