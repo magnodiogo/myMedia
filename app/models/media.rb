@@ -4,6 +4,9 @@ class Media < ApplicationRecord
   belongs_to :media_type
   has_one_attached :cover_image
 
+  has_many :user_media, class_name: "UserMedia", dependent: :destroy
+  has_many :users, through: :user_media
+
   attr_accessor :cover_url
 
   before_save :download_cover_from_url, if: -> { cover_url.present? }
@@ -23,7 +26,7 @@ class Media < ApplicationRecord
     self.cover_url = nil
 
     begin
-      file = URI.open(url)
+      file = URI.open(url, ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE)
       
       temp_path = Rails.root.join("tmp", "cover-#{Time.current.to_i}.jpg")
       File.open(temp_path, "wb") { |f| f.write(file.read) }

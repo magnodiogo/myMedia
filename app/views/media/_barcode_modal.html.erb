@@ -1,0 +1,86 @@
+<div id="barcode-modal" class="modal-overlay" data-catalog-actions-target="barcodeModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>⚡ Add via Barcode</h2>
+      <button type="button" class="modal-close-btn" data-action="click->catalog-actions#closeBarcodeModal">&times;</button>
+    </div>
+    <div class="modal-body" data-controller="barcode-lookup">
+      <!-- Search barcode online -->
+      <div style="margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+        <label class="form-label" style="font-weight: 600;">Enter Barcode</label>
+        <div style="display: flex; gap: 0.75rem;">
+          <input type="text" data-barcode-lookup-target="query" placeholder="e.g., 602438472529" class="form-control" style="flex: 1;">
+          <button type="button" data-barcode-lookup-target="searchButton" data-action="click->barcode-lookup#lookup" class="btn btn-primary" style="white-space: nowrap;">
+            🔍 Search
+          </button>
+        </div>
+        <div data-barcode-lookup-target="status" style="margin-top: 0.5rem;"></div>
+      </div>
+
+      <!-- Form for detailed metadata (starts collapsed/hidden unless found or forced manual) -->
+      <div id="barcode-metadata-form" style="display: none; border-top: 1px solid var(--panel-border); padding-top: 1.5rem; margin-top: 1.5rem; animation: fadeIn 0.3s ease;">
+        <h3 style="font-size: 1.05rem; color: #a5b4fc; margin-bottom: 1.25rem;">Confirm Media Details</h3>
+        
+        <%= form_with(model: Media.new, local: true, html: { id: "barcode-save-form" }) do |form| %>
+          <%= form.hidden_field :cover_url, data: { barcode_lookup_target: "coverUrl" } %>
+
+          <div class="form-group">
+            <%= form.label :media_type_id, "Format / Media Type", class: "form-label" %>
+            <%= form.collection_select :media_type_id, MediaType.all, :id, :name, { prompt: "Select a format..." }, { class: "form-control", required: true } %>
+          </div>
+
+          <div class="form-group">
+            <%= form.label :title, "Title", class: "form-label" %>
+            <%= form.text_field :title, class: "form-control", required: true, data: { barcode_lookup_target: "title" } %>
+          </div>
+
+          <div class="form-group">
+            <%= form.label :artist, "Artist", class: "form-label" %>
+            <%= form.text_field :artist, class: "form-control", required: true, data: { barcode_lookup_target: "artist" } %>
+          </div>
+
+          <div class="form-group">
+            <%= form.label :release_year, "Release Year", class: "form-label" %>
+            <%= form.number_field :release_year, class: "form-control", data: { barcode_lookup_target: "year" } %>
+          </div>
+
+          <div class="form-group">
+            <%= form.label :catalog_number, "Catalog Number", class: "form-label" %>
+            <%= form.text_field :catalog_number, class: "form-control", data: { barcode_lookup_target: "catalog" } %>
+          </div>
+
+          <div class="form-group">
+            <%= form.label :barcode, "Barcode", class: "form-label" %>
+            <%= form.text_field :barcode, class: "form-control", data: { barcode_lookup_target: "barcode" } %>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Media Cover</label>
+            <div data-barcode-lookup-target="preview">
+              <span style="font-size: 0.85rem; color: var(--text-muted);">No cover selected</span>
+            </div>
+            <%= form.file_field :cover_image, class: "form-control", style: "margin-top: 0.5rem;" %>
+          </div>
+
+          <div class="form-group">
+            <%= form.label :notes, "Collector Notes (Optional)", class: "form-label" %>
+            <%= form.text_area :notes, rows: 3, class: "form-control", placeholder: "e.g., Condition, physical location..." %>
+          </div>
+
+          <div style="display: flex; gap: 1rem; margin-top: 2rem; justify-content: flex-end;">
+            <button type="button" class="btn btn-secondary" data-action="click->catalog-actions#closeBarcodeModal">Cancel</button>
+            <%= form.submit "Add to Collection", class: "btn btn-primary" %>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Add manual helper -->
+      <div id="barcode-manual-helper" style="text-align: center; margin-top: 1rem;">
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+          If not found or if you prefer to enter details manually, 
+          <a href="#" onclick="document.getElementById('barcode-metadata-form').style.display='block'; document.getElementById('barcode-manual-helper').style.display='none'; return false;" style="color: var(--accent-primary); font-weight: 600;">click here to fill the form</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

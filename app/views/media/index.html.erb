@@ -1,10 +1,17 @@
-<div data-controller="view-toggle">
+<% content_for :main_content_class, "main-content-full" %>
+<div data-controller="view-toggle catalog-actions">
   <div class="page-header">
     <div>
       <h1 class="page-title">Media Collection</h1>
       <p class="page-subtitle">Browse and manage your media catalog</p>
     </div>
     <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+      <!-- Size Slider Control (Simple view only) -->
+      <div class="size-slider-container" data-view-toggle-target="sliderContainer" style="display: none;">
+        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Size:</span>
+        <input type="range" min="120" max="300" value="180" class="size-slider" data-view-toggle-target="slider" data-action="input->view-toggle#changeSize">
+      </div>
+
       <div class="view-toggle-group">
         <button class="view-toggle-btn" data-action="click->view-toggle#setDetailed" data-view-toggle-target="detailedBtn">
           📝 Detailed
@@ -13,14 +20,17 @@
           🖼️ Simple
         </button>
       </div>
-      <a href="<%= new_media_path %>" class="btn btn-primary">+ Add Media</a>
+      <button type="button" data-action="click->catalog-actions#toggleMenu" class="btn btn-primary">+ Add Media</button>
     </div>
   </div>
 
   <!-- Search Bar -->
-  <div class="section-box" style="margin-bottom: 2rem; padding: 1.25rem 2rem;">
-    <%= form_with(url: media_index_path, method: :get, local: true, style: "display: flex; gap: 1rem; align-items: center;") do |form| %>
-      <%= form.text_field :search, value: @query, placeholder: "Search by title or artist...", class: "form-control", style: "flex: 1;" %>
+  <div class="search-container">
+    <%= form_with(url: media_index_path, method: :get, local: true, class: "search-form") do |form| %>
+      <div class="search-input-wrapper">
+        <span class="search-icon-placeholder">🔍</span>
+        <%= form.text_field :search, value: @query, placeholder: "Search by title or artist...", class: "form-control search-input" %>
+      </div>
       <%= form.submit "Search", class: "btn btn-secondary", name: nil %>
       <% if @query.present? %>
         <a href="<%= media_index_path %>" class="btn btn-secondary">Clear</a>
@@ -32,19 +42,28 @@
     <div class="catalog-grid" data-view-toggle-target="grid">
       <% @media.each do |media| %>
         <div class="media-card">
-          <% if media.cover_image.attached? %>
-            <a href="<%= media_path(media) %>" class="media-card-cover-link">
-              <div class="media-card-cover-container">
-                <%= image_tag media.cover_image, class: "media-card-cover" %>
-              </div>
+          <div class="media-card-cover-wrapper">
+            <% if media.cover_image.attached? %>
+              <a href="<%= media_path(media) %>" class="media-card-cover-link">
+                <div class="media-card-cover-container">
+                  <%= image_tag media.cover_image, class: "media-card-cover" %>
+                </div>
+              </a>
+            <% else %>
+              <a href="<%= media_path(media) %>" class="media-card-cover-link">
+                <div class="media-card-cover-container media-card-cover-placeholder">
+                  <span class="placeholder-icon">🎵</span>
+                </div>
+              </a>
+            <% end %>
+            <a href="<%= edit_media_path(media) %>" class="media-card-edit-overlay" title="Edit Media">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="edit-icon-svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+              </svg>
             </a>
-          <% else %>
-            <a href="<%= media_path(media) %>" class="media-card-cover-link">
-              <div class="media-card-cover-container media-card-cover-placeholder">
-                <span class="placeholder-icon">🎵</span>
-              </div>
-            </a>
-          <% end %>
+
+          </div>
+
 
           <div class="media-card-content">
             <div class="media-card-header">
@@ -59,7 +78,7 @@
                   <span>📅 <%= media.release_year %></span>
                 <% end %>
                 <% if media.catalog_number.present? %>
-                  <span style="font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"># <%= media.catalog_number %></span>
+                  <span class="media-catalog-number"># <%= media.catalog_number %></span>
                 <% end %>
               </div>
 
@@ -76,7 +95,29 @@
 <% else %>
   <div class="section-box" style="text-align: center; padding: 4rem 2rem;">
     <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 1.5rem;">No media items found in your collection.</p>
-    <a href="<%= new_media_path %>" class="btn btn-primary">+ Add Your First Media</a>
+    <button type="button" data-action="click->catalog-actions#toggleMenu" class="btn btn-primary">+ Add Your First Media</button>
   </div>
 <% end %>
+
+  <!-- Floating Action Button (FAB) Menu -->
+  <div class="fab-container">
+    <div class="fab-menu" data-catalog-actions-target="fabMenu">
+      <button type="button" class="fab-menu-item" data-action="click->catalog-actions#openBarcodeModal">
+        ⚡ Add via Barcode
+      </button>
+      <button type="button" class="fab-menu-item" data-action="click->catalog-actions#openSearchModal">
+        🔍 Online Search & Import
+      </button>
+    </div>
+    <button class="fab-btn" data-catalog-actions-target="fabBtn" data-action="click->catalog-actions#toggleMenu">
+      +
+    </button>
+  </div>
+
+  <!-- Barcode Lookup Modal -->
+  <%= render "barcode_modal" %>
+
+  <!-- Search & Import Modal -->
+  <%= render "search_modal" %>
+
 </div>

@@ -1,0 +1,51 @@
+<div id="search-modal" class="modal-overlay" data-catalog-actions-target="searchModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>🔍 Search and Import Media</h2>
+      <button type="button" class="modal-close-btn" data-action="click->catalog-actions#closeSearchModal">&times;</button>
+    </div>
+    
+    <div class="modal-body">
+      <!-- Search inputs -->
+      <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" style="font-weight: 600;">Title / Album</label>
+          <input type="text" data-catalog-actions-target="searchTitle" placeholder="e.g., Rumours or Thriller" class="form-control">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" style="font-weight: 600;">Artist / Band</label>
+          <input type="text" data-catalog-actions-target="searchArtist" placeholder="e.g., Fleetwood Mac" class="form-control">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" style="font-weight: 600;">Default Format for Import</label>
+          <select data-catalog-actions-target="searchFormatId" class="form-control">
+            <% MediaType.all.each do |mt| %>
+              <option value="<%= mt.id %>"><%= mt.name %></option>
+            <% end %>
+          </select>
+        </div>
+        <button type="button" data-action="click->catalog-actions#performSearch" data-catalog-actions-target="searchButton" class="btn btn-primary" style="margin-top: 0.5rem;">
+          🔍 Search Collection & Online
+        </button>
+      </div>
+
+      <!-- Search Status -->
+      <div data-catalog-actions-target="searchStatus"></div>
+
+      <!-- Search results list -->
+      <div style="border-top: 1px solid var(--panel-border); padding-top: 1rem; margin-top: 1.5rem;">
+        <h3 style="font-size: 1.05rem; color: #a5b4fc; margin-bottom: 1rem;">Search Results</h3>
+        <div data-catalog-actions-target="searchResults" class="search-results-list">
+          <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem 0;">
+            Enter a title or artist above to start searching.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" data-action="click->catalog-actions#closeSearchModal">Cancel</button>
+      <button type="button" class="btn btn-primary" data-action="click->catalog-actions#submitSelection" data-catalog-actions-target="doneButton">Done</button>
+    </div>
+  </div>
+</div>

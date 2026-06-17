@@ -43,6 +43,22 @@
           </ul>
         </nav>
 
+        <!-- User Selector -->
+        <div class="active-user-container">
+          <form action="<%= switch_user_sessions_path %>" method="post" class="active-user-form">
+            <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+            <label for="user_id" class="active-user-label">Active User</label>
+            <div class="active-user-select-wrapper">
+              <span class="active-user-icon">👤</span>
+              <select name="user_id" id="user_id" onchange="this.form.submit()" class="active-user-select">
+                <% User.all.each do |u| %>
+                  <option value="<%= u.id %>" <%= 'selected' if current_user == u %>><%= u.name %></option>
+                <% end %>
+              </select>
+            </div>
+          </form>
+        </div>
+
         <div class="theme-toggle-container">
           <button class="theme-toggle-btn" data-theme-target="button" data-action="click->theme#toggle">
             <span class="nav-icon">☀️</span> Light Mode
@@ -50,7 +66,7 @@
         </div>
       </aside>
 
-      <main class="main-content">
+      <main class="main-content <%= yield :main_content_class %>">
         <% flash.each do |type, message| %>
           <div class="flash-message flash-<%= type %>">
             <% if type == 'notice' %>

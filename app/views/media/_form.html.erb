@@ -1,5 +1,5 @@
-<%= form_with(model: media, local: true, html: { data: { controller: "cover-search submit-status" } }) do |form| %>
-  <%= form.hidden_field :cover_url, data: { cover_search_target: "urlInput" } %>
+<%= form_with(model: media, local: true, html: { data: { controller: "cover-search submit-status barcode-lookup" } }) do |form| %>
+  <%= form.hidden_field :cover_url, data: { cover_search_target: "urlInput", barcode_lookup_target: "coverUrl" } %>
   <% if media.errors.any? %>
     <div class="error-messages">
       <h2><%= pluralize(media.errors.count, "error") %> prohibited this media from being saved:</h2>
@@ -11,6 +11,23 @@
     </div>
   <% end %>
 
+  <!-- Quick Barcode Fill Section -->
+  <div class="quick-barcode-box">
+    <h3 class="quick-barcode-title">
+      ⚡ Quick Barcode Fill
+    </h3>
+    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; margin-top: 0.25rem;">
+      Enter a barcode (UPC/EAN) to search online databases (iTunes & MusicBrainz) and autofill the form.
+    </p>
+    <div style="display: flex; gap: 0.75rem;">
+      <input type="text" data-barcode-lookup-target="query" placeholder="e.g., 077774600121" class="form-control" style="flex: 1;" value="<%= media.barcode %>">
+      <button type="button" data-barcode-lookup-target="searchButton" data-action="click->barcode-lookup#lookup" class="btn btn-primary" style="white-space: nowrap;">
+        🔍 Lookup Barcode
+      </button>
+    </div>
+    <div data-barcode-lookup-target="status" style="margin-top: 0.75rem;"></div>
+  </div>
+
   <div class="form-group">
     <%= form.label :media_type_id, "Format / Media Type", class: "form-label" %>
     <%= form.collection_select :media_type_id, MediaType.all, :id, :name, { prompt: "Select a format..." }, { class: "form-control" } %>
@@ -20,13 +37,13 @@
     <%= form.label :cover_image, "Cover Image", class: "form-label" %>
     <%= form.file_field :cover_image, class: "form-control" %>
     
-    <div style="display: flex; gap: 0.75rem; align-items: center; margin-top: 0.5rem; flex-wrap: wrap;">
+    <div class="cover-preview-box">
       <button type="button" class="btn btn-secondary btn-sm" data-action="click->cover-search#search">🔍 Search Cover Online</button>
-      <div data-cover-search-target="preview">
+      <div data-cover-search-target="preview" data-barcode-lookup-target="preview">
         <% if media.cover_image.attached? %>
           <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <%= image_tag media.cover_image, style: "width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid var(--panel-border);" %>
-            <span style="font-size: 0.85rem; color: var(--text-muted);">Current cover image</span>
+            <%= image_tag media.cover_image, class: "cover-preview-image" %>
+            <span class="cover-preview-text">Current cover image</span>
           </div>
         <% end %>
       </div>
@@ -36,27 +53,27 @@
 
   <div class="form-group">
     <%= form.label :title, class: "form-label" %>
-    <%= form.text_field :title, class: "form-control", placeholder: "e.g., The Dark Side of the Moon", data: { cover_search_target: "title" } %>
+    <%= form.text_field :title, class: "form-control", placeholder: "e.g., The Dark Side of the Moon", data: { cover_search_target: "title", barcode_lookup_target: "title" } %>
   </div>
 
   <div class="form-group">
     <%= form.label :artist, class: "form-label" %>
-    <%= form.text_field :artist, class: "form-control", placeholder: "e.g., Pink Floyd", data: { cover_search_target: "artist" } %>
+    <%= form.text_field :artist, class: "form-control", placeholder: "e.g., Pink Floyd", data: { cover_search_target: "artist", barcode_lookup_target: "artist" } %>
   </div>
 
   <div class="form-group">
     <%= form.label :release_year, "Release Year", class: "form-label" %>
-    <%= form.number_field :release_year, class: "form-control", placeholder: "e.g., 1973" %>
+    <%= form.number_field :release_year, class: "form-control", placeholder: "e.g., 1973", data: { barcode_lookup_target: "year" } %>
   </div>
 
   <div class="form-group">
     <%= form.label :catalog_number, "Catalog Number", class: "form-label" %>
-    <%= form.text_field :catalog_number, class: "form-control", placeholder: "e.g., CDP 7 46001 2" %>
+    <%= form.text_field :catalog_number, class: "form-control", placeholder: "e.g., CDP 7 46001 2", data: { barcode_lookup_target: "catalog" } %>
   </div>
 
   <div class="form-group">
     <%= form.label :barcode, class: "form-label" %>
-    <%= form.text_field :barcode, class: "form-control", placeholder: "e.g., 077774600121" %>
+    <%= form.text_field :barcode, class: "form-control", placeholder: "e.g., 077774600121", data: { barcode_lookup_target: "barcode" } %>
   </div>
 
   <div class="form-group">

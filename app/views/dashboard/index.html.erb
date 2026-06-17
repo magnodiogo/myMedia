@@ -8,12 +8,18 @@
 
 <div class="stats-grid">
   <div class="stat-card">
-    <div class="stat-label">Total Media</div>
-    <div class="stat-value"><%= @total_media %></div>
+    <div class="stat-icon-bg">💿</div>
+    <div class="stat-info">
+      <div class="stat-label">Total Media</div>
+      <div class="stat-value"><%= @total_media %></div>
+    </div>
   </div>
   <div class="stat-card">
-    <div class="stat-label">Media Types</div>
-    <div class="stat-value"><%= @total_types %></div>
+    <div class="stat-icon-bg">🏷️</div>
+    <div class="stat-info">
+      <div class="stat-label">Media Types</div>
+      <div class="stat-value"><%= @total_types %></div>
+    </div>
   </div>
 </div>
 
@@ -28,12 +34,12 @@
       <div class="dashboard-list">
         <% @latest_media.each do |media| %>
           <div class="dashboard-item">
-            <div style="display: flex; align-items: center; gap: 1rem; flex: 1;">
+            <div class="dashboard-item-main">
               <% if media.cover_image.attached? %>
-                <%= image_tag media.cover_image, style: "width: 40px; height: 40px; border-radius: 6px; object-fit: cover; border: 1px solid var(--panel-border); flex-shrink: 0;" %>
+                <%= image_tag media.cover_image, class: "dashboard-item-cover" %>
               <% else %>
-                <div class="media-card-cover-placeholder" style="width: 40px; height: 40px; border-radius: 6px; border: 1px solid var(--panel-border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(20, 26, 45, 0.8) 0%, rgba(30, 41, 59, 0.8) 100%);">
-                  <span style="font-size: 1.1rem; opacity: 0.4;">🎵</span>
+                <div class="dashboard-item-cover-placeholder">
+                  <span>🎵</span>
                 </div>
               <% end %>
 
@@ -42,8 +48,8 @@
                 <span class="dashboard-item-subtitle"><%= media.artist %> • <%= media.release_year %></span>
               </div>
             </div>
-            <div>
-              <span class="media-badge"><%= media.media_type.name %></span>
+            <div class="dashboard-item-meta">
+              <span class="media-badge" style="margin-bottom: 0;"><%= media.media_type.name %></span>
               <a href="<%= media_path(media) %>" class="btn btn-secondary btn-sm">Details</a>
             </div>
           </div>
@@ -62,9 +68,15 @@
 
     <div class="dashboard-list">
       <% @media_types_with_count.each do |(id, name), count| %>
-        <div class="dashboard-item">
-          <span class="dashboard-item-title"><%= name %></span>
-          <span class="media-badge" style="margin-bottom: 0;"><%= count %> items</span>
+        <% pct = @total_media > 0 ? (count.to_f / @total_media * 100).round : 0 %>
+        <div class="dashboard-item format-item" style="flex-direction: column; align-items: stretch; gap: 0.6rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <span class="dashboard-item-title"><%= name %></span>
+            <span class="format-count-badge"><%= count %> <%= count == 1 ? 'item' : 'items' %> (<%= pct %>%)</span>
+          </div>
+          <div class="format-progress-bar-bg">
+            <div class="format-progress-bar-fill" style="width: <%= pct %>%;"></div>
+          </div>
         </div>
       <% end %>
     </div>
