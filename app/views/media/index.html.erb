@@ -1,5 +1,5 @@
 <% content_for :main_content_class, "main-content-full" %>
-<div data-controller="view-toggle catalog-actions">
+<div data-controller="view-toggle catalog-actions" data-catalog-actions-admin-value="<%= current_user&.admin? ? 'true' : 'false' %>">
   <div class="page-header">
     <div>
       <h1 class="page-title">Media Collection</h1>
@@ -20,7 +20,11 @@
           🖼️ Simple
         </button>
       </div>
-      <button type="button" data-action="click->catalog-actions#toggleMenu" class="btn btn-primary">+ Add Media</button>
+      <% if current_user&.admin? %>
+        <button type="button" data-action="click->catalog-actions#toggleMenu" class="btn btn-primary">+ Add Media</button>
+      <% else %>
+        <button type="button" data-action="click->catalog-actions#openSearchModal" class="btn btn-primary">+ Add to Collection</button>
+      <% end %>
     </div>
   </div>
 
@@ -56,11 +60,13 @@
                 </div>
               </a>
             <% end %>
-            <a href="<%= edit_media_path(media) %>" class="media-card-edit-overlay" title="Edit Media">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="edit-icon-svg">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-              </svg>
-            </a>
+            <% if current_user&.admin? %>
+              <a href="<%= edit_media_path(media) %>" class="media-card-edit-overlay" title="Edit Media">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="edit-icon-svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                </svg>
+              </a>
+            <% end %>
 
           </div>
 
@@ -84,8 +90,10 @@
 
               <div class="media-actions">
                 <a href="<%= media_path(media) %>" class="btn btn-secondary btn-sm">Details</a>
-                <a href="<%= edit_media_path(media) %>" class="btn btn-secondary btn-sm">Edit</a>
-                <%= button_to "Delete", media_path(media), method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-danger btn-sm" %>
+                <% if current_user&.admin? %>
+                  <a href="<%= edit_media_path(media) %>" class="btn btn-secondary btn-sm">Edit</a>
+                  <%= button_to "Delete", media_path(media), method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-danger btn-sm" %>
+                <% end %>
               </div>
             </div>
           </div>
@@ -95,24 +103,36 @@
 <% else %>
   <div class="section-box" style="text-align: center; padding: 4rem 2rem;">
     <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 1.5rem;">No media items found in your collection.</p>
-    <button type="button" data-action="click->catalog-actions#toggleMenu" class="btn btn-primary">+ Add Your First Media</button>
+    <% if current_user&.admin? %>
+      <button type="button" data-action="click->catalog-actions#toggleMenu" class="btn btn-primary">+ Add Your First Media</button>
+    <% else %>
+      <button type="button" data-action="click->catalog-actions#openSearchModal" class="btn btn-primary">+ Add to Collection</button>
+    <% end %>
   </div>
 <% end %>
 
   <!-- Floating Action Button (FAB) Menu -->
-  <div class="fab-container">
-    <div class="fab-menu" data-catalog-actions-target="fabMenu">
-      <button type="button" class="fab-menu-item" data-action="click->catalog-actions#openBarcodeModal">
-        ⚡ Add via Barcode
-      </button>
-      <button type="button" class="fab-menu-item" data-action="click->catalog-actions#openSearchModal">
-        🔍 Online Search & Import
+  <% if current_user&.admin? %>
+    <div class="fab-container">
+      <div class="fab-menu" data-catalog-actions-target="fabMenu">
+        <button type="button" class="fab-menu-item" data-action="click->catalog-actions#openBarcodeModal">
+          ⚡ Add via Barcode
+        </button>
+        <button type="button" class="fab-menu-item" data-action="click->catalog-actions#openSearchModal">
+          🔍 Online Search & Import
+        </button>
+      </div>
+      <button class="fab-btn" data-catalog-actions-target="fabBtn" data-action="click->catalog-actions#toggleMenu">
+        +
       </button>
     </div>
-    <button class="fab-btn" data-catalog-actions-target="fabBtn" data-action="click->catalog-actions#toggleMenu">
-      +
-    </button>
-  </div>
+  <% else %>
+    <div class="fab-container">
+      <button class="fab-btn" data-action="click->catalog-actions#openSearchModal" title="Search & Add to Collection">
+        +
+      </button>
+    </div>
+  <% end %>
 
   <!-- Barcode Lookup Modal -->
   <%= render "barcode_modal" %>

@@ -3,7 +3,9 @@
     <h1 class="page-title">Dashboard</h1>
     <p class="page-subtitle">Overview of your media collection</p>
   </div>
-  <a href="<%= new_media_path %>" class="btn btn-primary">+ Add Media</a>
+  <% if current_user&.admin? %>
+    <a href="<%= new_media_path %>" class="btn btn-primary">+ Add Media</a>
+  <% end %>
 </div>
 
 <div class="stats-grid">
@@ -31,46 +33,94 @@
 </div>
 
 <div class="dashboard-sections">
-  <div class="section-box">
-    <h3>
-      <span>Latest Additions</span>
-      <a href="<%= media_index_path %>" class="btn btn-secondary btn-sm">View All</a>
-    </h3>
+  <div style="display: flex; flex-direction: column; gap: 2rem;">
+    <!-- Latest Additions -->
+    <div class="section-box">
+      <h3>
+        <span>Latest Additions</span>
+        <a href="<%= media_index_path %>" class="btn btn-secondary btn-sm">View All</a>
+      </h3>
 
-    <% if @latest_media.any? %>
-      <div class="dashboard-list">
-        <% @latest_media.each do |media| %>
-          <div class="dashboard-item">
-            <div class="dashboard-item-main">
-              <% if media.cover_image.attached? %>
-                <%= image_tag media.cover_image, class: "dashboard-item-cover" %>
-              <% else %>
-                <div class="dashboard-item-cover-placeholder">
-                  <span>🎵</span>
+      <% if @latest_media.any? %>
+        <div class="dashboard-list">
+          <% @latest_media.each do |media| %>
+            <div class="dashboard-item">
+              <div class="dashboard-item-main">
+                <% if media.cover_image.attached? %>
+                  <%= image_tag media.cover_image, class: "dashboard-item-cover" %>
+                <% else %>
+                  <div class="dashboard-item-cover-placeholder">
+                    <span>🎵</span>
+                  </div>
+                <% end %>
+
+                <div class="dashboard-item-info">
+                  <span class="dashboard-item-title"><%= media.title %></span>
+                  <span class="dashboard-item-subtitle"><%= media.artist&.name %> • <%= media.release_year %></span>
                 </div>
-              <% end %>
-
-              <div class="dashboard-item-info">
-                <span class="dashboard-item-title"><%= media.title %></span>
-                <span class="dashboard-item-subtitle"><%= media.artist&.name %> • <%= media.release_year %></span>
+              </div>
+              <div class="dashboard-item-meta">
+                <span class="media-badge" style="margin-bottom: 0;"><%= media.media_type.name %></span>
+                <a href="<%= media_path(media) %>" class="btn btn-secondary btn-sm">Details</a>
               </div>
             </div>
-            <div class="dashboard-item-meta">
-              <span class="media-badge" style="margin-bottom: 0;"><%= media.media_type.name %></span>
-              <a href="<%= media_path(media) %>" class="btn btn-secondary btn-sm">Details</a>
-            </div>
-          </div>
+          <% end %>
+        </div>
+      <% else %>
+        <% if current_user&.admin? %>
+          <p style="color: var(--text-muted);">No media items added yet. Click "+ Add Media" to start your collection!</p>
+        <% else %>
+          <p style="color: var(--text-muted);">No media items added yet. Go to the Media catalog to search and add items!</p>
         <% end %>
-      </div>
-    <% else %>
-      <p style="color: var(--text-muted);">No media items added yet. Click "+ Add Media" to start your collection!</p>
-    <% end %>
+      <% end %>
+    </div>
+
+    <!-- Latest Artists -->
+    <div class="section-box">
+      <h3>
+        <span>Latest Artists</span>
+        <a href="<%= artists_path %>" class="btn btn-secondary btn-sm">View All</a>
+      </h3>
+
+      <% if @latest_artists.any? %>
+        <div class="dashboard-list">
+          <% @latest_artists.each do |artist| %>
+            <div class="dashboard-item">
+              <div class="dashboard-item-main">
+                <% if artist.photo.attached? %>
+                  <%= image_tag artist.photo, class: "dashboard-item-cover", style: "border-radius: 50%;" %>
+                <% else %>
+                  <div class="dashboard-item-cover-placeholder" style="border-radius: 50%;">
+                    <span>👤</span>
+                  </div>
+                <% end %>
+
+                <div class="dashboard-item-info">
+                  <span class="dashboard-item-title"><%= artist.name %></span>
+                  <span class="dashboard-item-subtitle"><%= artist.bio.present? ? truncate(artist.bio, length: 80) : "No biography available." %></span>
+                </div>
+              </div>
+              <div class="dashboard-item-meta">
+                <a href="<%= artist_path(artist) %>" class="btn btn-secondary btn-sm">Details</a>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p style="color: var(--text-muted);">No artists in your collection yet.</p>
+      <% end %>
+    </div>
   </div>
 
+  <!-- Formats -->
   <div class="section-box">
     <h3>
       <span>Formats</span>
-      <a href="<%= media_types_path %>" class="btn btn-secondary btn-sm">Manage</a>
+      <% if current_user&.admin? %>
+        <a href="<%= media_types_path %>" class="btn btn-secondary btn-sm">Manage</a>
+      <% else %>
+        <a href="<%= media_types_path %>" class="btn btn-secondary btn-sm">View All</a>
+      <% end %>
     </h3>
 
     <div class="dashboard-list">

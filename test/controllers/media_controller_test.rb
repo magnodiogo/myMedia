@@ -115,4 +115,47 @@ class MediaControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to media_index_url
   end
+
+  test "common user should not get new, edit, create, update, destroy, or import_and_add media" do
+    post switch_user_sessions_url, params: { user_id: users(:one).id }
+    
+    get new_media_url
+    assert_redirected_to root_url
+    assert_equal "Only administrator users can perform this action.", flash[:alert]
+
+    get edit_media_url(@media)
+    assert_redirected_to root_url
+
+    assert_no_difference("Media.count") do
+      post media_index_url, params: {
+        media: {
+          media_type_id: @media_type.id,
+          title: "New Album",
+          artist: "New Artist"
+        }
+      }
+    end
+    assert_redirected_to root_url
+
+    patch media_url(@media), params: { media: { title: "Dark Side Updated" } }
+    assert_redirected_to root_url
+    @media.reload
+    assert_not_equal "Dark Side Updated", @media.title
+
+    assert_no_difference("Media.count") do
+      delete media_url(@media)
+    end
+    assert_redirected_to root_url
+
+    assert_no_difference("Media.count") do
+      post import_and_add_media_url, params: {
+        album: {
+          title: "Imported Album",
+          artist: "Imported Artist",
+          tracks: []
+        }
+      }
+    end
+    assert_redirected_to root_url
+  end
 end

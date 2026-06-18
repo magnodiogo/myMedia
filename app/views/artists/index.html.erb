@@ -3,38 +3,65 @@
     <h1 class="page-title">Artists</h1>
     <p class="page-subtitle">Manage the artists and bands in your collection</p>
   </div>
-  <a href="<%= new_artist_path %>" class="btn btn-primary">+ Add Artist</a>
+  <% if current_user&.admin? %>
+    <a href="<%= new_artist_path %>" class="btn btn-primary">+ Add Artist</a>
+  <% end %>
 </div>
 
 <div class="section-box">
   <% if @artists.any? %>
-    <table class="custom-table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Bio</th>
-          <th style="text-align: right;">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @artists.each do |artist| %>
+    <% if current_user&.admin? %>
+      <table class="custom-table">
+        <thead>
           <tr>
-            <td style="font-weight: 600; color: #a5b4fc;">
-              <a href="<%= artist_path(artist) %>" style="color: #a5b4fc; text-decoration: none;"><%= artist.name %></a>
-            </td>
-            <td style="color: var(--text-muted);"><%= truncate(artist.bio, length: 80) %></td>
-            <td style="text-align: right;">
-              <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
-                <a href="<%= artist_path(artist) %>" class="btn btn-secondary btn-sm">View</a>
-                <a href="<%= edit_artist_path(artist) %>" class="btn btn-secondary btn-sm">Edit</a>
-                <%= button_to "Delete", artist_path(artist), method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-danger btn-sm" %>
-              </div>
-            </td>
+            <th>Name</th>
+            <th>Bio</th>
+            <th style="text-align: right;">Actions</th>
           </tr>
+        </thead>
+        <tbody>
+          <% @artists.each do |artist| %>
+            <tr>
+              <td style="font-weight: 600; color: #a5b4fc;">
+                <a href="<%= artist_path(artist) %>" style="color: #a5b4fc; text-decoration: none;"><%= artist.name %></a>
+              </td>
+              <td style="color: var(--text-muted);"><%= truncate(artist.bio, length: 80) %></td>
+              <td style="text-align: right;">
+                <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                  <a href="<%= artist_path(artist) %>" class="btn btn-secondary btn-sm">View</a>
+                  <a href="<%= edit_artist_path(artist) %>" class="btn btn-secondary btn-sm">Edit</a>
+                  <%= button_to "Delete", artist_path(artist), method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-danger btn-sm" %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <div class="artists-grid">
+        <% @artists.each do |artist| %>
+          <div class="artist-card">
+            <a href="<%= artist_path(artist) %>" class="artist-card-link">
+              <div class="artist-photo-container">
+                <% if artist.photo.attached? %>
+                  <%= image_tag artist.photo, class: "artist-photo" %>
+                <% else %>
+                  <div class="artist-photo-placeholder">
+                    <span class="placeholder-icon">👤</span>
+                  </div>
+                <% end %>
+              </div>
+              <div class="artist-name"><%= artist.name %></div>
+            </a>
+          </div>
         <% end %>
-      </tbody>
-    </table>
+      </div>
+    <% end %>
   <% else %>
-    <p style="color: var(--text-muted); padding: 1rem 0;">No artists registered yet. Click "+ Add Artist" to create one.</p>
+    <% if current_user&.admin? %>
+      <p style="color: var(--text-muted); padding: 1rem 0;">No artists registered yet. Click "+ Add Artist" to create one.</p>
+    <% else %>
+      <p style="color: var(--text-muted); padding: 1rem 0;">No artists registered yet.</p>
+    <% end %>
   <% end %>
 </div>

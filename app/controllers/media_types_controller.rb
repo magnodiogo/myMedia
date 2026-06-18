@@ -1,5 +1,6 @@
 class MediaTypesController < ApplicationController
   before_action :set_media_type, only: %i[ show edit update destroy ]
+  before_action :require_admin!, only: %i[ new create edit update destroy ]
 
   def index
     @media_types = MediaType.all

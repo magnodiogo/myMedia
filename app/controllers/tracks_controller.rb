@@ -1,6 +1,7 @@
 class TracksController < ApplicationController
   before_action :set_media
   before_action :set_track, only: [:edit, :update, :destroy, :edit_lyrics, :update_lyrics]
+  before_action :require_admin!, only: [:create, :edit, :update, :destroy, :edit_lyrics, :update_lyrics]
 
   def create
     @track = @media.tracks.build(track_params)

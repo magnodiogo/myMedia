@@ -4,7 +4,9 @@
     <p class="page-subtitle">Format overview and item catalog</p>
   </div>
   <div style="display: flex; gap: 0.5rem;">
-    <a href="<%= edit_media_type_path(@media_type) %>" class="btn btn-secondary">Edit Format</a>
+    <% if current_user&.admin? %>
+      <a href="<%= edit_media_type_path(@media_type) %>" class="btn btn-secondary">Edit Format</a>
+    <% end %>
     <a href="<%= media_types_path %>" class="btn btn-secondary">Back</a>
   </div>
 </div>

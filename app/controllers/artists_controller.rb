@@ -1,5 +1,6 @@
 class ArtistsController < ApplicationController
   before_action :set_artist, only: %i[ show edit update destroy ]
+  before_action :require_admin!, only: %i[ new create edit update destroy ]
 
   def index
     @artists = Artist.all.order(:name)

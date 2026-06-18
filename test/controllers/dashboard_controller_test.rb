@@ -12,4 +12,11 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_select ".stat-label", text: "Artists"
     assert_select ".stat-value", text: "1"
   end
+
+  test "should display latest artists section" do
+    get root_url
+    assert_response :success
+    assert_select "h3 span", text: "Latest Artists"
+    assert_select ".dashboard-item-title", text: "Miles Davis"
+  end
 end

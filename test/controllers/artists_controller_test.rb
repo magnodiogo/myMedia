@@ -59,4 +59,30 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to artists_url
   end
+
+  test "common user should not get new, edit, create, update, or destroy artist" do
+    post switch_user_sessions_url, params: { user_id: users(:one).id }
+    
+    get new_artist_url
+    assert_redirected_to root_url
+    assert_equal "Only administrator users can perform this action.", flash[:alert]
+
+    get edit_artist_url(@artist)
+    assert_redirected_to root_url
+
+    assert_no_difference("Artist.count") do
+      post artists_url, params: { artist: { name: "New Artist" } }
+    end
+    assert_redirected_to root_url
+
+    patch artist_url(@artist), params: { artist: { name: "Queen Updated" } }
+    assert_redirected_to root_url
+    @artist.reload
+    assert_not_equal "Queen Updated", @artist.name
+
+    assert_no_difference("Artist.count") do
+      delete artist_url(@artist)
+    end
+    assert_redirected_to root_url
+  end
 end

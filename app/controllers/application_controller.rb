@@ -9,4 +9,13 @@ class ApplicationController < ActionController::Base
     end
     @current_user ||= User.first
   end
+
+  def require_admin!
+    unless current_user&.admin?
+      respond_to do |format|
+        format.html { redirect_to root_path, alert: "Only administrator users can perform this action." }
+        format.json { render json: { error: "Only administrator users can perform this action." }, status: :forbidden }
+      end
+    end
+  end
 end

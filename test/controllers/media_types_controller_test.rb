@@ -58,4 +58,30 @@ class MediaTypesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to media_types_url
     assert_not_nil flash[:alert]
   end
+
+  test "common user should not get new, edit, create, update, or destroy media type" do
+    post switch_user_sessions_url, params: { user_id: users(:one).id }
+    
+    get new_media_type_url
+    assert_redirected_to root_url
+    assert_equal "Only administrator users can perform this action.", flash[:alert]
+
+    get edit_media_type_url(@media_type)
+    assert_redirected_to root_url
+
+    assert_no_difference("MediaType.count") do
+      post media_types_url, params: { media_type: { name: "New Format" } }
+    end
+    assert_redirected_to root_url
+
+    patch media_type_url(@media_type), params: { media_type: { name: "Vinyl LP Updated" } }
+    assert_redirected_to root_url
+    @media_type.reload
+    assert_not_equal "Vinyl LP Updated", @media_type.name
+
+    assert_no_difference("MediaType.count") do
+      delete media_type_url(@media_type)
+    end
+    assert_redirected_to root_url
+  end
 end

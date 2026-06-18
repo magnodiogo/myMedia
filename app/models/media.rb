@@ -43,13 +43,13 @@ class Media < ApplicationRecord
     begin
       file = URI.open(url, ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE)
       
-      temp_path = Rails.root.join("tmp", "cover-#{Time.current.to_i}.jpg")
+      temp_path = Rails.root.join("tmp", "cover-#{SecureRandom.hex(8)}.jpg")
       File.open(temp_path, "wb") { |f| f.write(file.read) }
       
       # Resize cover image to max 600x600 and strip metadata to save disk space
       system("mogrify -resize '600x600>' -strip #{temp_path}")
       
-      cover_image.attach(io: File.open(temp_path), filename: "cover-#{Time.current.to_i}.jpg", content_type: "image/jpeg")
+      cover_image.attach(io: File.open(temp_path), filename: "cover-#{SecureRandom.hex(8)}.jpg", content_type: "image/jpeg")
       
       File.delete(temp_path) if File.exist?(temp_path)
     rescue => e

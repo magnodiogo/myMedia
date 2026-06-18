@@ -66,8 +66,7 @@ class MediaTest < ActiveSupport::TestCase
   end
 
   test "should download cover from URL before saving" do
-    mock_file = File.open(Rails.root.join('db/seeds/images/dark_side_cover.png'))
-    URI.stub :open, mock_file do
+    URI.stub :open, ->(*_a) { File.open(Rails.root.join('db/seeds/images/dark_side_cover.png')) } do
       media = Media.new(
         media_type: @media_type,
         title: "Brothers in Arms",
@@ -92,8 +91,7 @@ class MediaTest < ActiveSupport::TestCase
       artist: "Dire Straits"
     )
     
-    mock_file = File.open(Rails.root.join('db/seeds/images/dark_side_cover.png'))
-    URI.stub :open, mock_file do
+    URI.stub :open, ->(*_a) { File.open(Rails.root.join('db/seeds/images/dark_side_cover.png')) } do
       media.update!(cover_url: "https://example.com/brothers_in_arms.jpg")
       assert media.cover_image.attached?
     end

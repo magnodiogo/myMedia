@@ -3,20 +3,22 @@
   <div class="track-cell track-col-title" style="display: table-cell; vertical-align: middle; padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.03);"><%= track.title %></div>
   <div class="track-cell track-col-duration" style="display: table-cell; vertical-align: middle; padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.03); text-align: right;"><%= track.duration.presence || "--:--" %></div>
   <div class="track-cell track-col-actions" style="display: table-cell; vertical-align: middle; padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.03); text-align: right; overflow: visible;">
-    <div class="track-context-menu" data-controller="dropdown">
-      <button type="button" class="context-menu-trigger" data-action="click->dropdown#toggle" aria-label="Track actions">⋮</button>
-      <div class="context-menu-dropdown" data-dropdown-target="menu">
-        <a href="#" class="context-menu-item" data-action="click->lyrics-modal#open" data-url="<%= edit_lyrics_media_track_path(media, track) %>" data-track-title="<%= track.title %>">
-          📝 Lyrics
-        </a>
-        <%= link_to edit_media_track_path(media, track), class: "context-menu-item", data: { turbo_frame: dom_id(track) } do %>
-          ✏️ Edit
-        <% end %>
-        <%= button_to media_track_path(media, track), method: :delete, class: "context-menu-item btn-delete", data: { turbo_confirm: "Are you sure you want to remove this track?" }, style: "background: none; border: none; width: 100%; text-align: left;" do %>
-          🗑️ Delete
-        <% end %>
+    <% if current_user&.admin? %>
+      <div class="track-context-menu" data-controller="dropdown">
+        <button type="button" class="context-menu-trigger" data-action="click->dropdown#toggle" aria-label="Track actions">⋮</button>
+        <div class="context-menu-dropdown" data-dropdown-target="menu">
+          <a href="#" class="context-menu-item" data-action="click->lyrics-modal#open" data-url="<%= edit_lyrics_media_track_path(media, track) %>" data-track-title="<%= track.title %>">
+            📝 Lyrics
+          </a>
+          <%= link_to edit_media_track_path(media, track), class: "context-menu-item", data: { turbo_frame: dom_id(track) } do %>
+            ✏️ Edit
+          <% end %>
+          <%= button_to media_track_path(media, track), method: :delete, class: "context-menu-item btn-delete", data: { turbo_confirm: "Are you sure you want to remove this track?" }, style: "background: none; border: none; width: 100%; text-align: left;" do %>
+            🗑️ Delete
+          <% end %>
+        </div>
       </div>
-    </div>
+    <% end %>
   </div>
 </turbo-frame>
 

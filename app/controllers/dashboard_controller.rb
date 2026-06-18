@@ -12,5 +12,6 @@ class DashboardController < ApplicationController
     end
 
     @latest_media = current_user.media.includes(:media_type).order(created_at: :desc).limit(5)
+    @latest_artists = Artist.joins(media: :user_media).where(user_media: { user_id: current_user.id }).distinct.order("artists.id DESC").limit(5)
   end
 end

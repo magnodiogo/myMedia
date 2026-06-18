@@ -11,8 +11,10 @@
         <p class="page-subtitle detail-subtitle">by <%= link_to @media.artist.name, artist_path(@media.artist), style: "color: #a5b4fc; text-decoration: none;" %></p>
       </div>
       <div class="media-detail-actions">
-        <a href="<%= edit_media_path(@media) %>" class="btn btn-secondary">Edit</a>
-        <%= button_to "Delete", media_path(@media), method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-danger" %>
+        <% if current_user&.admin? %>
+          <a href="<%= edit_media_path(@media) %>" class="btn btn-secondary">Edit</a>
+          <%= button_to "Delete", media_path(@media), method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-danger" %>
+        <% end %>
         <a href="<%= media_index_path %>" class="btn btn-secondary">Back</a>
       </div>
     </div>
@@ -97,10 +99,12 @@
           </div>
         </div>
 
-        <div id="new_track_form_wrapper" class="track-inline-form-wrapper">
-          <h4 class="track-inline-form-title">⚡ Add New Track</h4>
-          <%= render partial: "tracks/form", locals: { media: @media, track: @media.tracks.build(track_number: @media.tracks.maximum(:track_number).to_i + 1) } %>
-        </div>
+        <% if current_user&.admin? %>
+          <div id="new_track_form_wrapper" class="track-inline-form-wrapper">
+            <h4 class="track-inline-form-title">⚡ Add New Track</h4>
+            <%= render partial: "tracks/form", locals: { media: @media, track: @media.tracks.build(track_number: @media.tracks.maximum(:track_number).to_i + 1) } %>
+          </div>
+        <% end %>
       </div>
 
       <!-- Notes Panel -->

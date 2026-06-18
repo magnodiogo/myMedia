@@ -3,7 +3,9 @@
     <h1 class="page-title">Media Types</h1>
     <p class="page-subtitle">Configure formats/types for your media collection</p>
   </div>
-  <a href="<%= new_media_type_path %>" class="btn btn-primary">+ Add Media Type</a>
+  <% if current_user&.admin? %>
+    <a href="<%= new_media_type_path %>" class="btn btn-primary">+ Add Media Type</a>
+  <% end %>
 </div>
 
 <div class="section-box">
@@ -24,8 +26,10 @@
             <td style="text-align: right;">
               <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
                 <a href="<%= media_type_path(media_type) %>" class="btn btn-secondary btn-sm">View</a>
-                <a href="<%= edit_media_type_path(media_type) %>" class="btn btn-secondary btn-sm">Edit</a>
-                <%= button_to "Delete", media_type_path(media_type), method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-danger btn-sm" %>
+                <% if current_user&.admin? %>
+                  <a href="<%= edit_media_type_path(media_type) %>" class="btn btn-secondary btn-sm">Edit</a>
+                  <%= button_to "Delete", media_type_path(media_type), method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-danger btn-sm" %>
+                <% end %>
               </div>
             </td>
           </tr>
@@ -33,6 +37,10 @@
       </tbody>
     </table>
   <% else %>
-    <p style="color: var(--text-muted); padding: 1rem 0;">No media types defined yet. Click "+ Add Media Type" to create one.</p>
+    <% if current_user&.admin? %>
+      <p style="color: var(--text-muted); padding: 1rem 0;">No media types defined yet. Click "+ Add Media Type" to create one.</p>
+    <% else %>
+      <p style="color: var(--text-muted); padding: 1rem 0;">No media types defined yet.</p>
+    <% end %>
   <% end %>
 </div>
