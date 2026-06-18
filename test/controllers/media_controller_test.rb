@@ -12,7 +12,7 @@ class MediaControllerTest < ActionDispatch::IntegrationTest
       barcode: "077774600121",
       notes: "First pressing"
     )
-    UserMedia.create!(user: users(:one), media: @media)
+    UserMedia.create!(user: User.first, media: @media)
   end
 
 
@@ -105,7 +105,7 @@ class MediaControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to media_url(@media)
     @media.reload
     assert_equal "The Dark Side of the Moon (Updated)", @media.title
-    assert_equal "Pink Floyd (Updated)", @media.artist
+    assert_equal "Pink Floyd (Updated)", @media.artist.name
   end
 
   test "should destroy media" do

@@ -14,7 +14,12 @@
         </div>
         <div class="form-group" style="margin-bottom: 0;">
           <label class="form-label" style="font-weight: 600;">Artist / Band</label>
-          <input type="text" data-catalog-actions-target="searchArtist" placeholder="e.g., Fleetwood Mac" class="form-control">
+          <input type="text" data-catalog-actions-target="searchArtist" placeholder="e.g., Fleetwood Mac" list="artists-list" class="form-control">
+          <datalist id="artists-list">
+            <% Artist.order(:name).pluck(:name).each do |name| %>
+              <option value="<%= name %>"></option>
+            <% end %>
+          </datalist>
         </div>
         <div class="form-group" style="margin-bottom: 0;">
           <label class="form-label" style="font-weight: 600;">Default Format for Import</label>

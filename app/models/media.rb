@@ -2,6 +2,7 @@ require 'open-uri'
 
 class Media < ApplicationRecord
   belongs_to :media_type
+  belongs_to :artist
   has_one_attached :cover_image
 
   has_many :user_media, class_name: "UserMedia", dependent: :destroy
@@ -20,6 +21,18 @@ class Media < ApplicationRecord
     greater_than_or_equal_to: 1800, 
     less_than_or_equal_to: ->(_record) { Time.current.year + 5 } 
   }, allow_blank: true
+
+  def artist=(value)
+    if value.is_a?(String)
+      if value.strip.present?
+        super(Artist.find_or_create_by(name: value.strip))
+      else
+        super(nil)
+      end
+    else
+      super(value)
+    end
+  end
 
   private
 

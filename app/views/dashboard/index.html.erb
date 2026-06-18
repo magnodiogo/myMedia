@@ -21,6 +21,13 @@
       <div class="stat-value"><%= @total_types %></div>
     </div>
   </div>
+  <div class="stat-card">
+    <div class="stat-icon-bg">🎤</div>
+    <div class="stat-info">
+      <div class="stat-label">Artists</div>
+      <div class="stat-value"><%= @total_artists %></div>
+    </div>
+  </div>
 </div>
 
 <div class="dashboard-sections">
@@ -45,7 +52,7 @@
 
               <div class="dashboard-item-info">
                 <span class="dashboard-item-title"><%= media.title %></span>
-                <span class="dashboard-item-subtitle"><%= media.artist %> • <%= media.release_year %></span>
+                <span class="dashboard-item-subtitle"><%= media.artist&.name %> • <%= media.release_year %></span>
               </div>
             </div>
             <div class="dashboard-item-meta">

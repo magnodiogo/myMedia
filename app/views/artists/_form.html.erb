@@ -1,0 +1,38 @@
+<%= form_with(model: artist, local: true) do |form| %>
+  <% if artist.errors.any? %>
+    <div class="error-messages">
+      <h2><%= pluralize(artist.errors.count, "error") %> prohibited this artist from being saved:</h2>
+      <ul>
+        <% artist.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-group">
+    <%= form.label :name, class: "form-label" %>
+    <%= form.text_field :name, class: "form-control", placeholder: "e.g., Pink Floyd, Michael Jackson..." %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :bio, class: "form-label" %>
+    <%= form.text_area :bio, rows: 6, class: "form-control", placeholder: "Describe the biography or details about this artist..." %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :photo, "Artist Photo", class: "form-label" %>
+    <% if artist.photo.attached? %>
+      <div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem;">
+        <%= image_tag artist.photo, style: "width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 1px solid var(--panel-border);" %>
+        <span style="font-size: 0.9rem; color: var(--text-muted);">Current photo. Upload a new one to replace it.</span>
+      </div>
+    <% end %>
+    <%= form.file_field :photo, class: "form-control" %>
+  </div>
+
+  <div class="form-actions">
+    <a href="<%= artists_path %>" class="btn btn-secondary">Cancel</a>
+    <%= form.submit class: "btn btn-primary" %>
+  </div>
+<% end %>

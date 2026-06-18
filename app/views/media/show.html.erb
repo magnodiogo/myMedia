@@ -8,7 +8,7 @@
       <div>
         <span class="media-badge detail-badge"><%= @media.media_type.name %></span>
         <h1 class="page-title detail-title"><%= @media.title %></h1>
-        <p class="page-subtitle detail-subtitle">by <%= @media.artist %></p>
+        <p class="page-subtitle detail-subtitle">by <%= link_to @media.artist.name, artist_path(@media.artist), style: "color: #a5b4fc; text-decoration: none;" %></p>
       </div>
       <div class="media-detail-actions">
         <a href="<%= edit_media_path(@media) %>" class="btn btn-secondary">Edit</a>

@@ -5,4 +5,11 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     get root_url
     assert_response :success
   end
+
+  test "should display total artists count" do
+    get root_url
+    assert_response :success
+    assert_select ".stat-label", text: "Artists"
+    assert_select ".stat-value", text: "1"
+  end
 end

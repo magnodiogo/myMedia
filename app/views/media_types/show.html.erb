@@ -41,7 +41,7 @@
         <% @media.each do |item| %>
           <tr>
             <td style="font-weight: 600; color: var(--text-main);"><%= item.title %></td>
-            <td style="color: var(--text-muted);"><%= item.artist %></td>
+            <td style="color: var(--text-muted);"><%= link_to item.artist.name, artist_path(item.artist), style: "color: #a5b4fc; text-decoration: none;" %></td>
             <td style="color: var(--text-muted);"><%= item.release_year %></td>
             <td style="font-family: monospace; color: var(--text-muted);"><%= item.catalog_number %></td>
             <td style="text-align: right;">

@@ -69,7 +69,7 @@
             <div class="media-card-header">
               <span class="media-badge"><%= media.media_type.name %></span>
               <h2 class="media-title"><%= media.title %></h2>
-              <p class="media-artist"><%= media.artist %></p>
+              <p class="media-artist"><%= link_to media.artist.name, artist_path(media.artist), style: "color: inherit; text-decoration: none;" %></p>
             </div>
 
             <div>

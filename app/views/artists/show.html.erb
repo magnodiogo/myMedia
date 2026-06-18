@@ -1,0 +1,80 @@
+<div class="page-header" style="margin-bottom: 2rem;">
+  <div>
+    <h1 class="page-title"><%= @artist.name %></h1>
+    <p class="page-subtitle">Artist overview and media catalog</p>
+  </div>
+  <div style="display: flex; gap: 0.5rem;">
+    <a href="<%= edit_artist_path(@artist) %>" class="btn btn-secondary">Edit Artist</a>
+    <a href="<%= artists_path %>" class="btn btn-secondary">Back</a>
+  </div>
+</div>
+
+<div class="spec-card-premium" style="margin-bottom: 2.5rem;">
+  <div class="spec-card-cover-side" style="width: 200px;">
+    <% if @artist.photo.attached? %>
+      <div class="detail-cover-wrapper" style="border-radius: 50%; width: 200px; height: 200px; overflow: hidden; border: 2px solid var(--panel-border);">
+        <%= image_tag @artist.photo, class: "detail-cover", style: "width: 100%; height: 100%; object-fit: cover;" %>
+      </div>
+    <% else %>
+      <div class="detail-cover-placeholder" style="border-radius: 50%; width: 200px; height: 200px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(168, 85, 247, 0.2) 100%);">
+        <span class="placeholder-icon" style="font-size: 4.5rem; opacity: 0.5;">🎤</span>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="spec-card-info-side" style="margin-top: 0.5rem;">
+    <div class="spec-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <h2 style="font-size: 1.6rem; color: #a5b4fc; margin: 0;"><%= @artist.name %></h2>
+      <div style="background-color: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #a5b4fc; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+        💿 <%= pluralize(@media.count, "item") %> in catalog
+      </div>
+    </div>
+    
+    <div style="margin-top: 1.5rem;">
+      <h3 style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">Biography</h3>
+      <p style="color: var(--text-main); line-height: 1.6; font-size: 0.95rem; white-space: pre-wrap; margin: 0;"><%= @artist.bio.presence || "No biography provided for this artist." %></p>
+    </div>
+  </div>
+</div>
+
+<div class="section-box">
+  <h3 style="border-bottom: 1px solid var(--panel-border); padding-bottom: 0.75rem; margin-bottom: 1.5rem; font-size: 1.25rem;">Items by this Artist</h3>
+  
+  <% if @media.any? %>
+    <div class="catalog-grid grid-simple">
+      <% @media.each do |item| %>
+        <div class="media-card">
+          <div class="media-card-cover-wrapper">
+            <% if item.cover_image.attached? %>
+              <a href="<%= media_path(item) %>" class="media-card-cover-link">
+                <div class="media-card-cover-container">
+                  <%= image_tag item.cover_image, class: "media-card-cover" %>
+                </div>
+              </a>
+            <% else %>
+              <a href="<%= media_path(item) %>" class="media-card-cover-link">
+                <div class="media-card-cover-container media-card-cover-placeholder">
+                  <span class="placeholder-icon">🎵</span>
+                </div>
+              </a>
+            <% end %>
+            <a href="<%= edit_media_path(item) %>" class="media-card-edit-overlay" title="Edit Media">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="edit-icon-svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+              </svg>
+            </a>
+          </div>
+
+          <div class="media-card-content">
+            <div class="media-card-header">
+              <h2 class="media-title"><%= link_to item.title, media_path(item), style: "color: inherit; text-decoration: none;" %></h2>
+              <p class="media-artist"><%= item.media_type.name %> • <%= item.release_year %></p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <p style="color: var(--text-muted); padding: 2rem 0; text-align: center;">No items in the catalog for this artist yet.</p>
+  <% end %>
+</div>

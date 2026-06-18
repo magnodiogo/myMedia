@@ -7,9 +7,9 @@ class MediaController < ApplicationController
   def index
     @query = params[:search]
     if @query.present?
-      @media = current_user.media.includes(:media_type).where("title ILIKE ? OR artist ILIKE ?", "%#{@query}%", "%#{@query}%").order(created_at: :desc)
+      @media = current_user.media.includes(:media_type, :artist).left_outer_joins(:artist).where("media.title ILIKE ? OR artists.name ILIKE ?", "%#{@query}%", "%#{@query}%").order(created_at: :desc)
     else
-      @media = current_user.media.includes(:media_type).order(created_at: :desc)
+      @media = current_user.media.includes(:media_type, :artist).order(created_at: :desc)
     end
   end
 
@@ -62,19 +62,19 @@ class MediaController < ApplicationController
     results = []
 
     # 1. Search Local Catalog Database
-    local_query = Media.includes(:media_type)
+    local_query = Media.includes(:media_type, :artist).left_outer_joins(:artist)
     if title.present?
-      local_query = local_query.where("title ILIKE ?", "%#{title}%")
+      local_query = local_query.where("media.title ILIKE ?", "%#{title}%")
     end
     if artist.present?
-      local_query = local_query.where("artist ILIKE ?", "%#{artist}%")
+      local_query = local_query.where("artists.name ILIKE ?", "%#{artist}%")
     end
 
     local_query.limit(20).each do |m|
       results << {
         id: m.id,
         title: m.title,
-        artist: m.artist,
+        artist: m.artist&.name,
         format: m.media_type.name,
         release_year: m.release_year,
         cover_url: m.cover_image.attached? ? url_for(m.cover_image) : nil,

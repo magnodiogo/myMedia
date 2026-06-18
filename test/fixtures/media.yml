@@ -1,8 +1,8 @@
 one:
   media_type: one
   title: "A Night at the Opera"
-  artist: "Queen"
+  artist: queen
 two:
   media_type: two
   title: "Kind of Blue"
-  artist: "Miles Davis"
+  artist: miles_davis

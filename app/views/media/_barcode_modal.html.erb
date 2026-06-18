@@ -36,7 +36,12 @@
 
           <div class="form-group">
             <%= form.label :artist, "Artist", class: "form-label" %>
-            <%= form.text_field :artist, class: "form-control", required: true, data: { barcode_lookup_target: "artist" } %>
+            <%= form.text_field :artist, class: "form-control", required: true, list: "artists-list", data: { barcode_lookup_target: "artist" } %>
+            <datalist id="artists-list">
+              <% Artist.order(:name).pluck(:name).each do |name| %>
+                <option value="<%= name %>"></option>
+              <% end %>
+            </datalist>
           </div>
 
           <div class="form-group">
