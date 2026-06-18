@@ -70,7 +70,7 @@ class MediaController < ApplicationController
       local_query = local_query.where("artist ILIKE ?", "%#{artist}%")
     end
 
-    local_query.limit(10).each do |m|
+    local_query.limit(20).each do |m|
       results << {
         id: m.id,
         title: m.title,
@@ -85,7 +85,7 @@ class MediaController < ApplicationController
 
     # 2. Search Online (iTunes)
     search_term = [artist, title].reject(&:blank?).join(" ")
-    itunes_uri = URI("https://itunes.apple.com/search?term=#{ERB::Util.url_encode(search_term)}&entity=album&limit=8")
+    itunes_uri = URI("https://itunes.apple.com/search?term=#{ERB::Util.url_encode(search_term)}&entity=album&limit=30")
     begin
       itunes_response = Net::HTTP.start(itunes_uri.hostname, itunes_uri.port, use_ssl: true, verify_mode: OpenSSL::SSL::VERIFY_NONE) do |http|
         http.get(itunes_uri.request_uri)
