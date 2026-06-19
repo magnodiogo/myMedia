@@ -13,6 +13,7 @@ class Media < ApplicationRecord
   attr_accessor :cover_url
 
   before_save :download_cover_from_url, if: -> { cover_url.present? }
+  after_create_commit :enrich_metadata, if: -> { barcode.present? && !Rails.env.test? }
 
   validates :title, presence: true
   validates :artist, presence: true
@@ -54,6 +55,14 @@ class Media < ApplicationRecord
       File.delete(temp_path) if File.exist?(temp_path)
     rescue => e
       Rails.logger.error("Failed to download cover from URL #{url}: #{e.message}")
+    end
+  end
+
+  def enrich_metadata
+    Thread.new do
+      Rails.application.executor.wrap do
+        MediaEnrichmentService.new(self).perform
+      end
     end
   end
 end

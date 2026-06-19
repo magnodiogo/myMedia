@@ -13,6 +13,7 @@ Rails.application.routes.draw do
   resources :media do
     resources :tracks, only: [:create, :edit, :update, :destroy] do
       member do
+        get :show_lyrics
         get :edit_lyrics
         patch :update_lyrics
       end

@@ -11,6 +11,12 @@ class TrackTest < ActiveSupport::TestCase
     assert track.valid?
   end
 
+  test "should support position attribute" do
+    track = Track.new(media: @media, title: "Speak to Me", track_number: 1, duration: "1:30", position: "A1")
+    assert track.valid?
+    assert_equal "A1", track.position
+  end
+
   test "should be invalid without title" do
     track = Track.new(media: @media, track_number: 1, duration: "9:22")
     assert_not track.valid?

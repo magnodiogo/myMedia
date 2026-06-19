@@ -3,7 +3,7 @@ require 'net/http'
 class MediaController < ApplicationController
   before_action :set_media, only: %i[ show edit update destroy ]
   before_action :resize_uploaded_cover, only: %i[ create update ]
-  before_action :require_admin!, only: %i[ new create edit update destroy import_and_add ]
+  before_action :require_admin!, only: %i[ edit update destroy ]
 
   def index
     @query = params[:search]

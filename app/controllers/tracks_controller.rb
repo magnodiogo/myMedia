@@ -1,6 +1,6 @@
 class TracksController < ApplicationController
   before_action :set_media
-  before_action :set_track, only: [:edit, :update, :destroy, :edit_lyrics, :update_lyrics]
+  before_action :set_track, only: [:edit, :update, :destroy, :show_lyrics, :edit_lyrics, :update_lyrics]
   before_action :require_admin!, only: [:create, :edit, :update, :destroy, :edit_lyrics, :update_lyrics]
 
   def create
@@ -19,6 +19,12 @@ class TracksController < ApplicationController
   end
 
   def edit
+    respond_to do |format|
+      format.html
+    end
+  end
+
+  def show_lyrics
     respond_to do |format|
       format.html
     end

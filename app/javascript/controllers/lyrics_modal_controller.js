@@ -18,7 +18,7 @@ export default class extends Controller {
     const trackTitle = event.currentTarget.dataset.trackTitle
 
     if (this.hasTitleTarget) {
-      this.titleTarget.textContent = `Edit Lyrics - ${trackTitle}`
+      this.titleTarget.textContent = `Lyrics - ${trackTitle}`
     }
 
     if (this.hasFrameTarget) {

@@ -77,6 +77,9 @@
         <button class="tab-link active" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="tracks">
           🎵 Tracks
         </button>
+        <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="info">
+          ℹ️ Info (Wiki)
+        </button>
         <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="notes">
           📝 Collector Notes
         </button>
@@ -107,6 +110,17 @@
         <% end %>
       </div>
 
+      <!-- Info Panel -->
+      <div class="tab-panel" data-tabs-target="panel" data-tab-id="info" style="display: none;">
+        <% if @media.info.present? %>
+          <div class="wiki-info-content" style="padding: 1.5rem; background: rgba(255, 255, 255, 0.01); border-radius: var(--border-radius); border: 1px solid var(--panel-border);">
+            <p style="margin: 0; color: var(--text-color); font-size: 1.05rem; line-height: 1.6;"><%= @media.info %></p>
+          </div>
+        <% else %>
+          <p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No Wikipedia info available for this media.</p>
+        <% end %>
+      </div>
+
       <!-- Notes Panel -->
       <div class="tab-panel" data-tabs-target="panel" data-tab-id="notes" style="display: none;">
         <% if @media.notes.present? %>
@@ -125,7 +139,7 @@
   <div id="lyrics-modal" class="modal-overlay" data-lyrics-modal-target="modal">
     <div class="modal-content" style="max-width: 650px;">
       <div class="modal-header">
-        <h2 data-lyrics-modal-target="title">Edit Lyrics</h2>
+        <h2 data-lyrics-modal-target="title">Lyrics</h2>
         <button type="button" class="modal-close-btn" data-action="click->lyrics-modal#close">&times;</button>
       </div>
       <div class="modal-body">
