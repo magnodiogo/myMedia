@@ -1,7 +1,7 @@
 require 'net/http'
 
 class MediaController < ApplicationController
-  before_action :set_media, only: %i[ show edit update destroy ]
+  before_action :set_media, only: %i[ show edit update destroy refresh_metadata ]
   before_action :resize_uploaded_cover, only: %i[ create update ]
   before_action :require_admin!, only: %i[ edit update destroy ]
 
@@ -32,6 +32,8 @@ class MediaController < ApplicationController
 
 
   def show
+    @media = Media.includes(tracks: :track_credits).friendly.find(params[:id])
+    @user_media = current_user.user_media.find_or_initialize_by(media: @media) if current_user
   end
 
   def new
@@ -118,7 +120,7 @@ class MediaController < ApplicationController
   end
 
   def add_to_collection
-    @media = Media.find(params[:id])
+    @media = Media.friendly.find(params[:id])
     if current_user.media.include?(@media)
       render json: { error: "Already in collection" }, status: :unprocessable_entity
     else
@@ -161,10 +163,15 @@ class MediaController < ApplicationController
     redirect_to media_index_path, notice: "Media was successfully destroyed."
   end
 
+  def refresh_metadata
+    MediaEnrichmentService.new(@media).perform
+    redirect_to @media, notice: "Informações da mídia estão sendo atualizadas."
+  end
+
   private
 
   def set_media
-    @media = Media.find(params[:id])
+    @media = Media.friendly.find(params[:id])
   end
 
   def resize_uploaded_cover

@@ -1,6 +1,9 @@
 require 'open-uri'
 
 class Artist < ApplicationRecord
+  extend FriendlyId
+  friendly_id :name, use: :slugged
+
   has_many :media, dependent: :destroy
   has_one_attached :photo
 
@@ -21,7 +24,7 @@ class Artist < ApplicationRecord
     self.photo_url = nil
 
     begin
-      file = URI.open(url, ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE)
+      file = URI.open(url, "User-Agent" => "ColecaoCDs/1.0", ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE, open_timeout: 5, read_timeout: 5)
       
       temp_path = Rails.root.join("tmp", "photo-#{SecureRandom.hex(8)}.jpg")
       File.open(temp_path, "wb") { |f| f.write(file.read) }

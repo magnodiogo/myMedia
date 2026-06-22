@@ -1,6 +1,9 @@
 require 'open-uri'
 
 class Media < ApplicationRecord
+  extend FriendlyId
+  friendly_id :title, use: :slugged
+
   belongs_to :media_type
   belongs_to :artist
   has_one_attached :cover_image
@@ -13,7 +16,7 @@ class Media < ApplicationRecord
   attr_accessor :cover_url
 
   before_save :download_cover_from_url, if: -> { cover_url.present? }
-  after_create_commit :enrich_metadata, if: -> { barcode.present? && !Rails.env.test? }
+  after_create_commit :enrich_metadata, if: -> { !Rails.env.test? }
 
   validates :title, presence: true
   validates :artist, presence: true
@@ -42,7 +45,7 @@ class Media < ApplicationRecord
     self.cover_url = nil
 
     begin
-      file = URI.open(url, ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE)
+      file = URI.open(url, "User-Agent" => "ColecaoCDs/1.0", ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE, open_timeout: 5, read_timeout: 5)
       
       temp_path = Rails.root.join("tmp", "cover-#{SecureRandom.hex(8)}.jpg")
       File.open(temp_path, "wb") { |f| f.write(file.read) }

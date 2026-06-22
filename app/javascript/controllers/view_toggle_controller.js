@@ -4,8 +4,12 @@ export default class extends Controller {
   static targets = [ "grid", "simpleBtn", "detailedBtn", "sliderContainer", "slider" ]
 
   connect() {
-    const savedView = localStorage.getItem("media-view-preference") || "detailed"
-    this.applyView(savedView)
+    if (this.hasGridTarget) {
+      const isSimple = this.gridTarget.classList.contains("grid-simple")
+      if (isSimple) {
+        this.changeSize()
+      }
+    }
   }
 
   setSimple() {
@@ -17,7 +21,7 @@ export default class extends Controller {
   }
 
   applyView(view) {
-    localStorage.setItem("media-view-preference", view)
+    this.savePreference({ view_preference: view })
 
     if (view === "simple") {
       this.gridTarget.classList.add("grid-simple")
@@ -43,5 +47,25 @@ export default class extends Controller {
       const val = this.sliderTarget.value
       this.gridTarget.style.setProperty('--simple-card-size', `${val}px`)
     }
+  }
+
+  saveSize() {
+    if (this.hasSliderTarget) {
+      const val = this.sliderTarget.value
+      this.savePreference({ media_card_size: val })
+    }
+  }
+
+  savePreference(params) {
+    const csrfToken = document.querySelector("[name='csrf-token']").getAttribute("content")
+    const queryString = new URLSearchParams(params).toString()
+    
+    fetch(`/preferences?${queryString}`, {
+      method: "PATCH",
+      headers: {
+        "X-CSRF-Token": csrfToken,
+        "Accept": "application/json"
+      }
+    }).catch(err => console.error("Failed to save preferences:", err))
   }
 }

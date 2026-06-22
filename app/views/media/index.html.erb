@@ -5,18 +5,18 @@
       <h1 class="page-title">Media Collection</h1>
       <p class="page-subtitle">Browse and manage your media catalog</p>
     </div>
-    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+    <div class="page-header-actions" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
       <!-- Size Slider Control (Simple view only) -->
-      <div class="size-slider-container" data-view-toggle-target="sliderContainer" style="display: none;">
+      <div class="size-slider-container" data-view-toggle-target="sliderContainer" style="<%= @view_preference == 'simple' ? 'display: flex;' : 'display: none;' %>">
         <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Size:</span>
-        <input type="range" min="120" max="300" value="180" class="size-slider" data-view-toggle-target="slider" data-action="input->view-toggle#changeSize">
+        <input type="range" min="120" max="300" value="<%= @media_card_size %>" class="size-slider" data-view-toggle-target="slider" data-action="input->view-toggle#changeSize change->view-toggle#saveSize">
       </div>
 
       <div class="view-toggle-group">
-        <button class="view-toggle-btn" data-action="click->view-toggle#setDetailed" data-view-toggle-target="detailedBtn">
+        <button class="view-toggle-btn <%= 'active' unless @view_preference == 'simple' %>" data-action="click->view-toggle#setDetailed" data-view-toggle-target="detailedBtn">
           📝 Detailed
         </button>
-        <button class="view-toggle-btn" data-action="click->view-toggle#setSimple" data-view-toggle-target="simpleBtn">
+        <button class="view-toggle-btn <%= 'active' if @view_preference == 'simple' %>" data-action="click->view-toggle#setSimple" data-view-toggle-target="simpleBtn">
           🖼️ Simple
         </button>
       </div>
@@ -41,7 +41,7 @@
   </div>
 
   <% if @media.any? %>
-    <div class="catalog-grid" data-view-toggle-target="grid">
+    <div class="catalog-grid <%= 'grid-simple' if @view_preference == 'simple' %>" data-view-toggle-target="grid" style="<%= "--simple-card-size: #{@media_card_size}px;" if @view_preference == 'simple' %>">
       <% @media.each do |media| %>
         <div class="media-card">
           <div class="media-card-cover-wrapper">

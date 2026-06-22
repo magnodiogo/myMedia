@@ -1,0 +1,114 @@
+<div class="mobile-dashboard-header">
+  <div>
+    <span class="welcome-text">Hello, <%= current_user.name.presence || "Collector" %>! 👋</span>
+    <h1 class="mobile-page-title">Dashboard</h1>
+  </div>
+  <% if current_user&.admin? %>
+    <a href="<%= new_media_path %>" class="btn-circular-add" title="Add Media">+</a>
+  <% end %>
+</div>
+
+<div class="mobile-stats-row">
+  <div class="mobile-stat-pill">
+    <span class="pill-emoji">💿</span>
+    <div class="pill-data">
+      <span class="pill-value"><%= @total_media %></span>
+      <span class="pill-label">Media</span>
+    </div>
+  </div>
+  <div class="mobile-stat-pill">
+    <span class="pill-emoji">🏷️</span>
+    <div class="pill-data">
+      <span class="pill-value"><%= @total_types %></span>
+      <span class="pill-label">Types</span>
+    </div>
+  </div>
+  <div class="mobile-stat-pill">
+    <span class="pill-emoji">🎤</span>
+    <div class="pill-data">
+      <span class="pill-value"><%= @total_artists %></span>
+      <span class="pill-label">Artists</span>
+    </div>
+  </div>
+</div>
+
+<div class="mobile-section">
+  <div class="mobile-section-header">
+    <h2>Latest Additions</h2>
+    <a href="<%= media_index_path %>" class="mobile-see-all">See All →</a>
+  </div>
+  
+  <% if @latest_media.any? %>
+    <div class="mobile-card-list">
+      <% @latest_media.each do |media| %>
+        <a href="<%= media_path(media) %>" class="mobile-list-item">
+          <% if media.cover_image.attached? %>
+            <%= image_tag media.cover_image, class: "mobile-item-img" %>
+          <% else %>
+            <div class="mobile-item-img-placeholder">💿</div>
+          <% end %>
+          <div class="mobile-item-details">
+            <span class="mobile-item-title"><%= media.title %></span>
+            <span class="mobile-item-desc"><%= media.artist&.name %> • <%= media.release_year %></span>
+          </div>
+          <span class="mobile-chevron">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width: 14px; height: 14px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </span>
+        </a>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="mobile-empty-state">
+      <p>No media added yet.</p>
+    </div>
+  <% end %>
+</div>
+
+<div class="mobile-section">
+  <div class="mobile-section-header">
+    <h2>Latest Artists</h2>
+    <a href="<%= artists_path %>" class="mobile-see-all">See All →</a>
+  </div>
+  
+  <% if @latest_artists.any? %>
+    <div class="mobile-horizontal-scroll">
+      <% @latest_artists.each do |artist| %>
+        <a href="<%= artist_path(artist) %>" class="mobile-scroll-card">
+          <% if artist.photo.attached? %>
+            <%= image_tag artist.photo, class: "mobile-scroll-img" %>
+          <% else %>
+            <div class="mobile-scroll-img-placeholder">👤</div>
+          <% end %>
+          <span class="mobile-scroll-name"><%= artist.name %></span>
+        </a>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="mobile-empty-state">
+      <p>No artists found.</p>
+    </div>
+  <% end %>
+</div>
+
+<div class="mobile-section" style="margin-bottom: 2.5rem;">
+  <div class="mobile-section-header">
+    <h2>Format Distribution</h2>
+  </div>
+  
+  <div class="mobile-formats-list">
+    <% @media_types_with_count.each do |(id, name), count| %>
+      <% pct = @total_media > 0 ? (count.to_f / @total_media * 100).round : 0 %>
+      <div class="mobile-format-row">
+        <div class="mobile-format-info">
+          <span class="mobile-format-name"><%= name %></span>
+          <span class="mobile-format-pct"><%= count %> <%= count == 1 ? 'item' : 'items' %> (<%= pct %>%)</span>
+        </div>
+        <div class="mobile-progress-bg">
+          <div class="mobile-progress-fill" style="width: <%= pct %>%;"></div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

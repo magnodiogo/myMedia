@@ -72,7 +72,7 @@ class TracksController < ApplicationController
   private
 
   def set_media
-    @media = Media.find(params[:media_id])
+    @media = Media.friendly.find(params[:media_id])
   end
 
   def set_track

@@ -1,0 +1,39 @@
+<div class="form-container" style="padding-top: 4rem;">
+  <div class="glass-card">
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <span style="font-size: 3rem;">🎵</span>
+      <h2 class="page-title" style="margin-top: 1rem; margin-bottom: 0.5rem;">Log in to myMedia</h2>
+      <p style="color: var(--text-muted);">Enter your credentials to access your collection</p>
+    </div>
+
+    <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+      <div class="form-group">
+        <%= f.label :email, class: "form-label" %>
+        <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control", placeholder: "you@example.com" %>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :password, class: "form-label" %>
+        <%= f.password_field :password, autocomplete: "current-password", class: "form-control", placeholder: "••••••••" %>
+      </div>
+
+      <% if devise_mapping.rememberable? %>
+        <div class="form-group" style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2rem;">
+          <div class="custom-checkbox-wrapper">
+            <%= f.check_box :remember_me, class: "custom-checkbox-input" %>
+            <span class="custom-checkbox-checkmark"></span>
+          </div>
+          <%= f.label :remember_me, style: "cursor: pointer; font-size: 0.9rem; color: var(--text-main); user-select: none;" %>
+        </div>
+      <% end %>
+
+      <div class="actions" style="margin-top: 2rem;">
+        <%= f.submit "Log in", class: "btn btn-primary", style: "width: 100%; justify-content: center;" %>
+      </div>
+    <% end %>
+
+    <div style="margin-top: 1.5rem; text-align: center; border-top: 1px solid var(--panel-border); padding-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+      <%= render "devise/shared/links" %>
+    </div>
+  </div>
+</div>

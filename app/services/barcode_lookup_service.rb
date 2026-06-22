@@ -2,6 +2,7 @@ class BarcodeLookupService
   # Add new adapters to this list to support more APIs in the future
   ADAPTERS = [
     BarcodeAdapters::Itunes,
+    BarcodeAdapters::Discogs,
     BarcodeAdapters::Musicbrainz
   ]
 

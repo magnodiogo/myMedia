@@ -1,5 +1,6 @@
 class Track < ApplicationRecord
   belongs_to :media
+  has_many :track_credits, dependent: :destroy
 
   validates :title, presence: true
   validates :track_number, presence: true, numericality: { only_integer: true, greater_than: 0 }

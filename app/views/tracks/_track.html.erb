@@ -1,6 +1,13 @@
 <turbo-frame id="<%= dom_id(track) %>" class="track-row" style="display: table-row;">
   <div class="track-cell track-col-number" style="display: table-cell; vertical-align: middle; padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.03);"><%= track.track_number %></div>
-  <div class="track-cell track-col-title" style="display: table-cell; vertical-align: middle; padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.03);"><%= track.title %></div>
+  <div class="track-cell track-col-title" style="display: table-cell; vertical-align: middle; padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.03);">
+    <div><%= track.title %></div>
+    <% if track.track_credits.any? %>
+      <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+        <%= track.track_credits.map { |tc| "#{tc.function}: #{tc.name}" }.join(", ") %>
+      </div>
+    <% end %>
+  </div>
   <div class="track-cell track-col-duration" style="display: table-cell; vertical-align: middle; padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.03); text-align: right;"><%= track.duration.presence || "--:--" %></div>
   <div class="track-cell track-col-actions" style="display: table-cell; vertical-align: middle; padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.03); text-align: right; overflow: visible;">
     <% if current_user.present? && (current_user.admin? || track.lyrics.present?) %>

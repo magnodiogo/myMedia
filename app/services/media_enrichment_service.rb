@@ -34,6 +34,12 @@ class MediaEnrichmentService
       HttpClient.get_json(uri, headers)
     end
 
+    def search_by_title_and_artist(title, artist)
+      uri = URI("#{BASE_URL}/database/search")
+      uri.query = URI.encode_www_form(release_title: title, artist: artist, type: "release")
+      HttpClient.get_json(uri, headers)
+    end
+
     def release(id)
       uri = URI("#{BASE_URL}/releases/#{id}")
       HttpClient.get_json(uri, headers)
@@ -66,6 +72,18 @@ class MediaEnrichmentService
       HttpClient.get_json(uri, headers)
     rescue => e
       Rails.logger.error "Erro MusicBrainz: #{e.message}"
+      nil
+    end
+
+    def search_by_title_and_artist(title, artist)
+      uri = URI("#{BASE_URL}/release/")
+      query_parts = []
+      query_parts << "release:\"#{title.gsub('"', '')}\"" if title.present?
+      query_parts << "artist:\"#{artist.gsub('"', '')}\"" if artist.present?
+      uri.query = URI.encode_www_form(query: query_parts.join(" AND "), fmt: "json")
+      HttpClient.get_json(uri, headers)
+    rescue => e
+      Rails.logger.error "Erro MusicBrainz search_by_title_and_artist: #{e.message}"
       nil
     end
 
@@ -159,7 +177,10 @@ class MediaEnrichmentService
 
   def perform
     barcode = media.barcode.to_s.gsub(/[-\s]/, "")
-    return if barcode.blank?
+    title = media.title.to_s.strip
+    artist_name_param = media.artist&.name.to_s.strip
+
+    return if barcode.blank? && (title.blank? || artist_name_param.blank?)
 
     token = ENV["DISCOGS_TOKEN"] || "TPfEJXlWcimuwWmFvvENlMGtyHbvJtqhsSzbpjuX"
 
@@ -171,8 +192,16 @@ class MediaEnrichmentService
 
     begin
       # 1. Query Discogs
-      discogs_result = discogs.search_by_barcode(barcode)
-      return if discogs_result["results"].nil? || discogs_result["results"].empty?
+      discogs_result = nil
+      if barcode.present?
+        discogs_result = discogs.search_by_barcode(barcode)
+      end
+
+      if (discogs_result.nil? || discogs_result["results"].nil? || discogs_result["results"].empty?) && title.present?
+        discogs_result = discogs.search_by_title_and_artist(title, artist_name_param)
+      end
+
+      return if discogs_result.nil? || discogs_result["results"].nil? || discogs_result["results"].empty?
 
       item = discogs_result["results"].first
       detalhes = discogs.release(item["id"])
@@ -188,7 +217,12 @@ class MediaEnrichmentService
       end
 
       # 2. Query MusicBrainz
-      mb_result = musicbrainz.search_by_barcode(barcode)
+      mb_result = nil
+      if barcode.present?
+        mb_result = musicbrainz.search_by_barcode(barcode)
+      else
+        mb_result = musicbrainz.search_by_title_and_artist(title, artist_name_param)
+      end
       mb_release = mb_result&.dig("releases", 0)
 
       album_wikidata_qid = nil
@@ -273,13 +307,26 @@ class MediaEnrichmentService
             lyrics_res = fetch_lyrics(artist.name, track_data["title"], media.title)
             lyrics = lyrics_res[:lyrics]
 
-            media.tracks.create!(
+            track = media.tracks.create!(
               title: track_data["title"],
               track_number: track_number,
               position: track_data["position"],
               duration: duration,
               lyrics: lyrics
             )
+
+            if track_data["extraartists"]&.any?
+              track_data["extraartists"].each do |extra_artist|
+                role = extra_artist["role"].to_s.strip
+                name = clean_artist_name(extra_artist["name"])
+                next if role.blank? || name.blank?
+
+                track.track_credits.create!(
+                  function: role,
+                  name: name
+                )
+              end
+            end
 
             sleep 0.5 # be polite to API
           end

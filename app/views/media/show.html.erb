@@ -12,6 +12,7 @@
       </div>
       <div class="media-detail-actions">
         <% if current_user&.admin? %>
+          <%= button_to "🔄 Refresh Data", refresh_metadata_media_path(@media), method: :post, class: "btn btn-secondary" %>
           <a href="<%= edit_media_path(@media) %>" class="btn btn-secondary">Edit</a>
           <%= button_to "Delete", media_path(@media), method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-danger" %>
         <% end %>
@@ -78,8 +79,13 @@
           🎵 Tracks
         </button>
         <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="info">
-          ℹ️ Info (Wiki)
+          ℹ️ Info
         </button>
+        <% if current_user %>
+          <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="collection">
+            ⭐ My Copy
+          </button>
+        <% end %>
         <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="notes">
           📝 Collector Notes
         </button>
@@ -120,6 +126,78 @@
           <p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No Wikipedia info available for this media.</p>
         <% end %>
       </div>
+
+      <!-- Collection Panel -->
+      <% if current_user %>
+      <div class="tab-panel" data-tabs-target="panel" data-tab-id="collection" style="display: none;">
+        <div class="collection-form-container" style="padding: 2rem; background: rgba(20, 26, 45, 0.4); border-radius: var(--border-radius); border: 1px solid var(--panel-border); backdrop-filter: blur(12px);">
+          <%= form_with model: @user_media, class: "modern-form" do |f| %>
+            <%= f.hidden_field :media_id %>
+            
+            <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+              <div class="form-group">
+                <%= f.label :condition, "Media Condition", class: "form-label" %>
+                <%= f.select :condition, UserMedia::CONDITIONS, { include_blank: "Select Condition" }, class: "form-control" %>
+              </div>
+              <div class="form-group">
+                <%= f.label :sleeve_condition, "Sleeve Condition", class: "form-label" %>
+                <%= f.select :sleeve_condition, UserMedia::CONDITIONS, { include_blank: "Select Sleeve Condition" }, class: "form-control" %>
+              </div>
+              <div class="form-group">
+                <%= f.label :price_paid, "Price Paid", class: "form-label" %>
+                <div style="display: flex; gap: 0.5rem;">
+                  <%= f.select :currency, UserMedia::CURRENCIES, {}, class: "form-control", style: "width: 90px;" %>
+                  <%= f.number_field :price_paid, class: "form-control", step: "0.01", style: "flex: 1;" %>
+                </div>
+              </div>
+              <div class="form-group">
+                <%= f.label :purchase_date, "Purchase Date", class: "form-label" %>
+                <%= f.date_field :purchase_date, class: "form-control" %>
+              </div>
+              <div class="form-group">
+                <%= f.label :purchase_location, "Purchase Location", class: "form-label" %>
+                <%= f.text_field :purchase_location, class: "form-control", placeholder: "Store, Online, Discogs..." %>
+              </div>
+              <div class="form-group">
+                <%= f.label :physical_location, "Physical Location", class: "form-label" %>
+                <%= f.text_field :physical_location, class: "form-control", placeholder: "Shelf A, Box 2..." %>
+              </div>
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <%= f.label :edition_notes, "Edition Notes", class: "form-label" %>
+                <%= f.text_field :edition_notes, class: "form-control", placeholder: "e.g., 1st Pressing, Limited Edition" %>
+              </div>
+            </div>
+
+            <div class="form-checkboxes" style="display: flex; flex-wrap: wrap; gap: 2rem; margin-bottom: 2rem; padding: 0.5rem 0;">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div class="custom-checkbox-wrapper">
+                  <%= f.check_box :is_signed, class: "custom-checkbox-input" %>
+                  <span class="custom-checkbox-checkmark"></span>
+                </div>
+                <%= f.label :is_signed, "Signed / Autographed", style: "cursor: pointer; font-size: 0.95rem; color: var(--text-main); font-weight: 500; user-select: none;" %>
+              </div>
+              
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div class="custom-checkbox-wrapper">
+                  <%= f.check_box :is_sealed, class: "custom-checkbox-input" %>
+                  <span class="custom-checkbox-checkmark"></span>
+                </div>
+                <%= f.label :is_sealed, "Still Sealed", style: "cursor: pointer; font-size: 0.95rem; color: var(--text-main); font-weight: 500; user-select: none;" %>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+              <%= f.label :notes, "Personal Notes", class: "form-label" %>
+              <%= f.text_area :notes, class: "form-control", rows: 3, placeholder: "Any personal notes or memories about this item..." %>
+            </div>
+
+            <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid var(--panel-border); padding-top: 1.5rem;">
+              <%= f.submit @user_media.persisted? ? "Update My Copy" : "Save to My Collection", class: "btn btn-primary" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+      <% end %>
 
       <!-- Notes Panel -->
       <div class="tab-panel" data-tabs-target="panel" data-tab-id="notes" style="display: none;">

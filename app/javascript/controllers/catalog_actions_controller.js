@@ -132,33 +132,20 @@ export default class extends Controller {
         ownedLabel.textContent = "✓ Owned"
         actionContainer.appendChild(ownedLabel)
       } else {
-        if (!this.adminValue && item.source !== "Local Catalog") {
-          const restrictedLabel = document.createElement("span")
-          restrictedLabel.className = "source-badge"
-          restrictedLabel.style.backgroundColor = "rgba(239, 68, 68, 0.15)"
-          restrictedLabel.style.border = "1px solid rgba(239, 68, 68, 0.3)"
-          restrictedLabel.style.color = "#fca5a5"
-          restrictedLabel.style.fontSize = "0.75rem"
-          restrictedLabel.style.padding = "0.25rem 0.5rem"
-          restrictedLabel.style.borderRadius = "12px"
-          restrictedLabel.textContent = "Admin Only"
-          actionContainer.appendChild(restrictedLabel)
-        } else {
-          const checkboxLabel = document.createElement("label")
-          checkboxLabel.className = "custom-checkbox-wrapper"
+        const checkboxLabel = document.createElement("label")
+        checkboxLabel.className = "custom-checkbox-wrapper"
 
-          const checkbox = document.createElement("input")
-          checkbox.type = "checkbox"
-          checkbox.className = "custom-checkbox-input"
-          checkbox.addEventListener("change", (e) => this.toggleItemSelection(e, item))
+        const checkbox = document.createElement("input")
+        checkbox.type = "checkbox"
+        checkbox.className = "custom-checkbox-input"
+        checkbox.addEventListener("change", (e) => this.toggleItemSelection(e, item))
 
-          const checkmark = document.createElement("span")
-          checkmark.className = "custom-checkbox-checkmark"
+        const checkmark = document.createElement("span")
+        checkmark.className = "custom-checkbox-checkmark"
 
-          checkboxLabel.appendChild(checkbox)
-          checkboxLabel.appendChild(checkmark)
-          actionContainer.appendChild(checkboxLabel)
-        }
+        checkboxLabel.appendChild(checkbox)
+        checkboxLabel.appendChild(checkmark)
+        actionContainer.appendChild(checkboxLabel)
       }
 
       this.searchResultsTarget.appendChild(row)
