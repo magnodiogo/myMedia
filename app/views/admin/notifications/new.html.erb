@@ -1,0 +1,41 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Compose Notification</h1>
+    <p class="page-subtitle">Send a message to collectors</p>
+  </div>
+</div>
+
+<div class="form-container" style="max-width: 700px; margin: 0 auto;">
+  <div class="glass-card" style="box-shadow: 0 15px 35px var(--accent-glow); padding: 2rem;">
+    <%= form_with(model: [:admin, @notification], local: true) do |form| %>
+      
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label for="target_user_id" class="form-label" style="font-weight: 600; margin-bottom: 0.5rem; display: block;">Recipient</label>
+        <div class="active-user-select-wrapper" style="width: 100%;">
+          <select name="target_user_id" id="target_user_id" class="form-control" style="font-weight: 600; height: 48px; border-radius: var(--border-radius); background-color: rgba(255,255,255,0.03); border: 1px solid var(--panel-border); color: var(--text-main); width: 100%; padding: 0.5rem 1rem;">
+            <option value="all">📢 All Collectors (Broadcast)</option>
+            <% @users.each do |user| %>
+              <option value="<%= user.id %>">👤 <%= user.name.presence || user.email %> (<%= user.email %>)</option>
+            <% end %>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <%= form.label :title, "Subject / Title", class: "form-label", style: "font-weight: 600; margin-bottom: 0.5rem; display: block;" %>
+        <%= form.text_field :title, class: "form-control", placeholder: "e.g., Flash Promotion, Media limit alert, System update...", style: "height: 48px; border-radius: var(--border-radius); padding: 0.5rem 1rem; width: 100%; box-sizing: border-box;", required: true %>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 2rem;">
+        <%= form.label :content, "Message Body", class: "form-label", style: "font-weight: 600; margin-bottom: 0.5rem; display: block;" %>
+        <%= form.text_area :content, rows: 8, class: "form-control", placeholder: "Write your message details here...", style: "border-radius: var(--border-radius); padding: 0.75rem 1rem; width: 100%; box-sizing: border-box;", required: true %>
+      </div>
+
+      <div class="form-actions" style="border-top: 1px solid var(--panel-border); padding-top: 1.5rem; display: flex; justify-content: flex-end; gap: 1rem; width: 100%;">
+        <a href="<%= admin_notifications_path %>" class="btn btn-secondary">Cancel</a>
+        <%= form.submit "Send Notification", class: "btn btn-primary", style: "background: var(--accent-gradient); padding: 0.75rem 2rem; font-weight: 600;" %>
+      </div>
+
+    <% end %>
+  </div>
+</div>

@@ -46,7 +46,7 @@ class DiscogsClient
     uri = URI("#{BASE_URL}/artists/#{id}")
     HttpClient.get_json(uri, headers)
   rescue => e
-    puts "Erro ao buscar artista no Discogs: #{e.message}"
+    puts "Error fetching artist on Discogs: #{e.message}"
     nil
   end
 
@@ -68,7 +68,7 @@ class MusicBrainzClient
     uri.query = URI.encode_www_form(query: "barcode:#{barcode}", fmt: "json")
     HttpClient.get_json(uri, headers)
   rescue => e
-    puts "Erro MusicBrainz: #{e.message}"
+    puts "MusicBrainz Error: #{e.message}"
     nil
   end
 
@@ -77,7 +77,7 @@ class MusicBrainzClient
     uri.query = URI.encode_www_form(inc: "url-rels artist-credits", fmt: "json")
     HttpClient.get_json(uri, headers)
   rescue => e
-    puts "Erro Release Group MusicBrainz: #{e.message}"
+    puts "MusicBrainz Release Group Error: #{e.message}"
     nil
   end
 
@@ -86,7 +86,7 @@ class MusicBrainzClient
     uri.query = URI.encode_www_form(inc: "url-rels", fmt: "json")
     HttpClient.get_json(uri, headers)
   rescue => e
-    puts "Erro Artist MusicBrainz: #{e.message}"
+    puts "MusicBrainz Artist Error: #{e.message}"
     nil
   end
 
@@ -104,7 +104,7 @@ class WikidataClient
     uri = URI("https://www.wikidata.org/wiki/Special:EntityData/#{qid}.json")
     HttpClient.get_json(uri, { "User-Agent" => "ColecaoCDs/1.0" })
   rescue => e
-    puts "Erro Wikidata: #{e.message}"
+    puts "Wikidata Error: #{e.message}"
     nil
   end
 
@@ -449,11 +449,11 @@ else
 end
 
 # ===========================================
-# SALVANDO NO BANCO DE DADOS
+# SAVING TO DATABASE
 # ===========================================
 puts
 puts "=" * 80
-puts "SALVANDO NO BANCO DE DADOS"
+puts "SAVING TO DATABASE"
 puts "=" * 80
 
 # 1. Encontrar ou inicializar a Mídia por código de barras
@@ -487,15 +487,15 @@ media.artist = artist
 # Salvar a mídia (isso também fará o download da capa se cover_url estiver presente)
 Media.skip_callback(:commit, :after, :enrich_metadata)
 if media.save
-  puts "Mídia '#{media.title}' (ID: #{media.id}) salva com sucesso!"
+  puts "Media '#{media.title}' (ID: #{media.id}) successfully saved!"
 else
-  puts "Erro ao salvar a mídia: #{media.errors.full_messages.join(', ')}"
+  puts "Error saving media: #{media.errors.full_messages.join(', ')}"
   exit 1
 end
 
 # 5. Gravar automaticamente as faixas do disco
 if detalhes["tracklist"]&.any?
-  puts "Gravando faixas para a mídia..."
+  puts "Saving tracks for media..."
   media.tracks.destroy_all # Limpar faixas anteriores para recriar a lista limpa
   
   # Filtrar para ter apenas faixas válidas (ignorar cabeçalhos/headings da tracklist do Discogs se houver)
@@ -519,8 +519,21 @@ if detalhes["tracklist"]&.any?
       duration: duration,
       lyrics: lyrics
     )
-    puts " - Faixa #{track.track_number} [#{track.position}]: #{track.title}#{duration ? " (#{duration})" : ""}#{lyrics ? ' (Letra salva)' : ' (Sem letra)'}"
+    
+    if track_data["extraartists"]&.any?
+      track_data["extraartists"].each do |extra_artist|
+        role = extra_artist["role"].to_s.strip
+        name = clean_artist_name(extra_artist["name"])
+        next if role.blank? || name.blank?
+
+        track.track_credits.create!(
+          function: role,
+          name: name
+        )
+      end
+    end
+    puts " - Track #{track.track_number} [#{track.position}]: #{track.title}#{duration ? " (#{duration})" : ""}#{lyrics ? ' (Lyrics saved)' : ' (No lyrics)'}"
     sleep 0.5 # be polite to API
   end
-  puts "Total de #{media.tracks.count} faixas gravadas com sucesso!"
+  puts "Total of #{media.tracks.count} tracks successfully saved!"
 end

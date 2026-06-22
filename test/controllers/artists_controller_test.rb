@@ -1,8 +1,12 @@
 require "test_helper"
 
 class ArtistsControllerTest < ActionDispatch::IntegrationTest
+  include Devise::Test::IntegrationHelpers
+
   setup do
     @artist = artists(:queen)
+    @admin = users(:two) # Admin user from fixtures
+    sign_in @admin
   end
 
   test "should get index" do
@@ -61,7 +65,8 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "common user should not get new, edit, create, update, or destroy artist" do
-    post switch_user_sessions_url, params: { user_id: users(:one).id }
+    sign_out @admin
+    sign_in users(:one) # Common user
     
     get new_artist_url
     assert_redirected_to root_url
@@ -84,5 +89,95 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
       delete artist_url(@artist)
     end
     assert_redirected_to root_url
+  end
+
+  test "admin should be able to trigger update_wiki" do
+    Artist.class_eval do
+      alias_method :orig_update_bio, :update_bio_from_wikipedia
+      def update_bio_from_wikipedia; true; end
+    end
+
+    begin
+      post update_wiki_artist_url(@artist)
+      assert_redirected_to edit_artist_url(@artist)
+      assert_equal "Artist biography successfully updated from Wikipedia.", flash[:notice]
+    ensure
+      Artist.class_eval do
+        alias_method :update_bio_from_wikipedia, :orig_update_bio
+        remove_method :orig_update_bio
+      end
+    end
+  end
+
+  test "admin should see error if update_wiki fails" do
+    Artist.class_eval do
+      alias_method :orig_update_bio, :update_bio_from_wikipedia
+      def update_bio_from_wikipedia; false; end
+    end
+
+    begin
+      post update_wiki_artist_url(@artist)
+      assert_redirected_to edit_artist_url(@artist)
+      assert_equal "Could not find a Wikipedia biography for this artist.", flash[:alert]
+    ensure
+      Artist.class_eval do
+        alias_method :update_bio_from_wikipedia, :orig_update_bio
+        remove_method :orig_update_bio
+      end
+    end
+  end
+
+  test "common user should not be able to trigger update_wiki" do
+    sign_out @admin
+    sign_in users(:one) # Common user
+
+    post update_wiki_artist_url(@artist)
+    assert_redirected_to root_url
+    assert_equal "Only administrator users can perform this action.", flash[:alert]
+  end
+
+  test "admin should be able to trigger update_photo" do
+    Artist.class_eval do
+      alias_method :orig_update_photo, :update_photo_from_wikipedia
+      def update_photo_from_wikipedia; true; end
+    end
+
+    begin
+      post update_photo_artist_url(@artist)
+      assert_redirected_to edit_artist_url(@artist)
+      assert_equal "Artist photo successfully updated from Wikipedia.", flash[:notice]
+    ensure
+      Artist.class_eval do
+        alias_method :update_photo_from_wikipedia, :orig_update_photo
+        remove_method :orig_update_photo
+      end
+    end
+  end
+
+  test "admin should see error if update_photo fails" do
+    Artist.class_eval do
+      alias_method :orig_update_photo, :update_photo_from_wikipedia
+      def update_photo_from_wikipedia; false; end
+    end
+
+    begin
+      post update_photo_artist_url(@artist)
+      assert_redirected_to edit_artist_url(@artist)
+      assert_equal "Could not find a Wikipedia photo for this artist.", flash[:alert]
+    ensure
+      Artist.class_eval do
+        alias_method :update_photo_from_wikipedia, :orig_update_photo
+        remove_method :orig_update_photo
+      end
+    end
+  end
+
+  test "common user should not be able to trigger update_photo" do
+    sign_out @admin
+    sign_in users(:one) # Common user
+
+    post update_photo_artist_url(@artist)
+    assert_redirected_to root_url
+    assert_equal "Only administrator users can perform this action.", flash[:alert]
   end
 end

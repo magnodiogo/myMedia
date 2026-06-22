@@ -66,3 +66,8 @@ group :test do
   gem "selenium-webdriver"
   gem "minitest", "~> 5.0"
 end
+
+gem "friendly_id", "~> 5.7"
+gem "devise"
+gem "jwt"
+

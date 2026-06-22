@@ -3,6 +3,10 @@
     <h1 class="page-title">Edit Artist</h1>
     <p class="page-subtitle">Modify artist details</p>
   </div>
+  <div style="display: flex; gap: 0.75rem; align-items: center;">
+    <%= button_to "🔮 Sync Bio", update_wiki_artist_path(@artist), method: :post, class: "btn btn-secondary", style: "background-color: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3); color: #a5b4fc; font-weight: 500; padding: 0.5rem 1rem;" %>
+    <%= button_to "📷 Sync Photo", update_photo_artist_path(@artist), method: :post, class: "btn btn-secondary", style: "background-color: rgba(168, 85, 247, 0.1); border-color: rgba(168, 85, 247, 0.3); color: #d8b4fe; font-weight: 500; padding: 0.5rem 1rem;" %>
+  </div>
 </div>
 
 <div class="section-box">

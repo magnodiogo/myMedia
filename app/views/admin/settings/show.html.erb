@@ -1,0 +1,60 @@
+<div class="form-container">
+  <div class="page-header" style="justify-content: center; margin-bottom: 2rem;">
+    <div style="text-align: center;">
+      <h1 class="page-title">System Settings</h1>
+      <p class="page-subtitle">Configure global limits and platform parameters</p>
+    </div>
+  </div>
+
+  <div class="glass-card" style="box-shadow: 0 15px 35px var(--accent-glow);">
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--panel-border); padding-bottom: 1rem;">
+      <span style="font-size: 1.5rem;">⚙️</span>
+      <h3 style="margin: 0; font-weight: 600; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Usage Parameters</h3>
+    </div>
+
+    <%= form_with url: admin_settings_path, method: :patch, local: true do |f| %>
+      <div class="form-group">
+        <label for="free_user_media_limit" class="form-label" style="font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span>Media Limit (Free Accounts)</span>
+          <span class="media-badge admin-badge" style="font-size: 0.65rem; margin: 0; padding: 0.1rem 0.4rem;">Active Limit</span>
+        </label>
+        
+        <div style="position: relative; display: flex; align-items: center;">
+          <span style="position: absolute; left: 1rem; color: var(--text-muted); font-size: 1.1rem; pointer-events: none;">💿</span>
+          <%= number_field_tag :free_user_media_limit, @free_limit, class: "form-control", style: "padding-left: 2.75rem; font-size: 1.1rem; font-weight: 600; height: 50px; border-radius: var(--border-radius);", min: 1, required: true %>
+        </div>
+        
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.75rem; line-height: 1.5;">
+          Defines the maximum number of media items a user on the <strong>Free</strong> plan can add to their personal collection. Once this limit is reached, the platform will require the user to upgrade to the Premium plan.
+        </p>
+      </div>
+
+      <div class="form-group" style="margin-top: 1.5rem;">
+        <label for="monthly_subscription_price" class="form-label" style="font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span>Monthly Subscription Price (R$)</span>
+        </label>
+        
+        <div style="position: relative; display: flex; align-items: center;">
+          <span style="position: absolute; left: 1rem; color: var(--text-muted); font-size: 1.1rem; pointer-events: none;">💵</span>
+          <%= number_field_tag :monthly_subscription_price, sprintf('%.2f', @monthly_price), class: "form-control", style: "padding-left: 2.75rem; font-size: 1.1rem; font-weight: 600; height: 50px; border-radius: var(--border-radius);", min: 0.01, step: 0.01, required: true %>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top: 1.5rem;">
+        <label for="yearly_subscription_price" class="form-label" style="font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span>Yearly Subscription Price (R$)</span>
+        </label>
+        
+        <div style="position: relative; display: flex; align-items: center;">
+          <span style="position: absolute; left: 1rem; color: var(--text-muted); font-size: 1.1rem; pointer-events: none;">📈</span>
+          <%= number_field_tag :yearly_subscription_price, sprintf('%.2f', @yearly_price), class: "form-control", style: "padding-left: 2.75rem; font-size: 1.1rem; font-weight: 600; height: 50px; border-radius: var(--border-radius);", min: 0.01, step: 0.01, required: true %>
+        </div>
+      </div>
+
+      <div class="form-actions" style="margin-top: 2rem; border-top: 1px solid var(--panel-border); padding-top: 1.5rem;">
+        <a href="<%= root_path %>" class="btn btn-secondary">Back to Home</a>
+        <%= f.submit "Save Settings", class: "btn btn-primary", style: "background: var(--accent-gradient); padding: 0.75rem 2rem;" %>
+      </div>
+    <% end %>
+  </div>
+</div>

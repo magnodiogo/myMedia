@@ -1,0 +1,8 @@
+class Notification < ApplicationRecord
+  belongs_to :user
+
+  validates :title, presence: true
+  validates :content, presence: true
+
+  scope :unread, -> { where(read: false) }
+end

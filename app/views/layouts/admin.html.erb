@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="<%= 'light-theme' if @theme == 'light' %>">
   <head>
-    <title>myMedia Collection</title>
+    <title>myMedia Admin Panel</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
@@ -17,7 +17,7 @@
   </head>
 
   <body>
-    <div class="app-container <%= 'sidebar-collapsed' if @sidebar_collapsed %>" data-controller="theme sidebar">
+    <div class="app-container admin-mode <%= 'sidebar-collapsed' if @sidebar_collapsed %>" data-controller="theme sidebar">
       <!-- Mobile Hamburger Toggle Button -->
       <% unless devise_controller? %>
         <button type="button" class="mobile-nav-toggle-btn" data-action="click->sidebar#toggleMobile" title="Menu" style="position: fixed; top: 1.5rem; left: 1.5rem; z-index: 1000; background: var(--panel-bg); border: 1px solid var(--panel-border); color: var(--text-main); width: 44px; height: 44px; border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); backdrop-filter: blur(12px); padding: 0;">
@@ -32,20 +32,20 @@
       <% unless devise_controller? %>
         <aside class="sidebar">
           <a href="<%= root_path %>" class="logo-container">
-            <div class="logo-icon">🎵</div>
-            <span class="logo-text">myMedia</span>
+            <div class="logo-icon admin-logo-icon">👑</div>
+            <span class="logo-text">myMedia <small class="admin-badge-small">ADMIN</small></span>
           </a>
 
           <nav>
             <ul class="nav-links">
               <li>
                 <a href="<%= root_path %>" class="nav-link <%= 'active' if controller_name == 'dashboard' %>">
-                  <span class="nav-icon">📊</span> <span class="nav-text">Dashboard</span>
+                  <span class="nav-icon">📊</span> <span class="nav-text">Admin Dashboard</span>
                 </a>
               </li>
               <li>
                 <a href="<%= media_index_path %>" class="nav-link <%= 'active' if controller_name == 'media' %>">
-                  <span class="nav-icon">💿</span> <span class="nav-text">Media Collection</span>
+                  <span class="nav-icon">💿</span> <span class="nav-text">Global Collection</span>
                 </a>
               </li>
               <li>
@@ -59,22 +59,13 @@
                 </a>
               </li>
               <li>
-                <a href="<%= plans_path %>" class="nav-link <%= 'active' if controller_name == 'plans' %>">
-                  <span class="nav-icon">⭐</span> <span class="nav-text">Plans & Upgrades</span>
+                <a href="<%= admin_settings_path %>" class="nav-link <%= 'active' if controller_path == 'admin/settings' %>">
+                  <span class="nav-icon">⚙️</span> <span class="nav-text">Settings</span>
                 </a>
               </li>
               <li>
-                <a href="<%= notifications_path %>" class="nav-link <%= 'active' if controller_name == 'notifications' %>" style="position: relative;">
-                  <span class="nav-icon">🔔</span> 
-                  <span class="nav-text">Notifications</span>
-                  <% if current_user %>
-                    <% unread_count = current_user.notifications.unread.count %>
-                    <% if unread_count > 0 %>
-                      <span style="background-color: var(--danger-color); color: white; border-radius: 12px; padding: 0.15rem 0.5rem; font-size: 0.72rem; font-weight: bold; position: absolute; right: 1.25rem; top: 50%; transform: translateY(-50%); box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);">
-                        <%= unread_count %>
-                      </span>
-                    <% end %>
-                  <% end %>
+                <a href="<%= admin_notifications_path %>" class="nav-link <%= 'active' if controller_path == 'admin/notifications' %>">
+                  <span class="nav-icon">📢</span> <span class="nav-text">Notifications</span>
                 </a>
               </li>
             </ul>
@@ -86,32 +77,7 @@
               <div style="display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 1rem;">
                 <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Logged in as</span>
                 <span style="font-weight: 600; color: var(--text-main);"><%= current_user.name.presence || current_user.email %></span>
-                
-                <div style="display: flex; align-items: center; gap: 0.4rem; margin-top: 0.25rem;">
-                  <span class="media-badge" style="font-size: 0.7rem; padding: 0.15rem 0.5rem; margin: 0;"><%= current_user.type %></span>
-                  <% if current_user.free_tier? %>
-                    <span class="media-badge" style="font-size: 0.7rem; padding: 0.15rem 0.5rem; margin: 0; background-color: rgba(255,255,255,0.05); border-color: var(--panel-border); color: var(--text-muted);">FREE</span>
-                  <% else %>
-                    <span class="media-badge" style="font-size: 0.7rem; padding: 0.15rem 0.5rem; margin: 0; background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%); border-color: transparent; color: white; font-weight: bold; box-shadow: 0 2px 8px rgba(168, 85, 247, 0.3);">PREMIUM</span>
-                  <% end %>
-                </div>
-
-                <% if current_user.free_tier? %>
-                  <div style="margin-top: 0.5rem; font-size: 0.75rem;">
-                    <div style="display: flex; justify-content: space-between; color: var(--text-muted); margin-bottom: 0.25rem;">
-                      <span>Media limit:</span>
-                      <span style="font-weight: 600; color: var(--text-main);"><%= @collection_count %> / <%= @collection_limit %></span>
-                    </div>
-                    <div class="format-progress-bar-bg" style="height: 6px; border-radius: 3px;">
-                      <% pct = @collection_limit > 0 ? (@collection_count.to_f / @collection_limit * 100).round : 0 %>
-                      <div class="format-progress-bar-fill" style="width: <%= [pct, 100].min %>%; height: 6px; border-radius: 3px; background: <%= pct >= 100 ? 'var(--danger-color)' : 'var(--accent-primary)' %>;"></div>
-                    </div>
-                  </div>
-                <% else %>
-                  <div style="margin-top: 0.4rem; font-size: 0.75rem; color: var(--accent-secondary); font-weight: 600;">
-                    ✓ Unlimited Collection
-                  </div>
-                <% end %>
+                <span class="media-badge admin-badge" style="align-self: flex-start; margin-top: 0.25rem; font-size: 0.7rem; padding: 0.15rem 0.5rem;"><%= current_user.type %></span>
               </div>
 
               <!-- Dev user switcher shortcut -->

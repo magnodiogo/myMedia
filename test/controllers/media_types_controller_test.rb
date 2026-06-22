@@ -1,8 +1,12 @@
 require "test_helper"
 
 class MediaTypesControllerTest < ActionDispatch::IntegrationTest
+  include Devise::Test::IntegrationHelpers
+
   setup do
     @media_type = MediaType.create!(name: "CD RedBook", description: "Audio CD")
+    @admin = users(:two)
+    sign_in @admin
   end
 
   test "should get index" do

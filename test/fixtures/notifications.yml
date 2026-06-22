@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+unread_notification:
+  title: "Welcome to myMedia"
+  content: "This is a test notification content."
+  user: one
+  read: false
+
+read_notification:
+  title: "Special Offer"
+  content: "Get premium subscription now."
+  user: one
+  read: true
+
+admin_notification:
+  title: "System Maintenance"
+  content: "System will be down for 2 hours."
+  user: two
+  read: false

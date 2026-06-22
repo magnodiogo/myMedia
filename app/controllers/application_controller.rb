@@ -4,6 +4,18 @@ class ApplicationController < ActionController::Base
   before_action :load_preferences
   before_action :detect_device
 
+  layout :determine_layout
+
+  def determine_layout
+    if devise_controller?
+      "application"
+    elsif current_user&.admin?
+      "admin"
+    else
+      "application"
+    end
+  end
+
   def detect_device
     if params[:variant] == "mobile"
       request.variant = :mobile
@@ -20,6 +32,9 @@ class ApplicationController < ActionController::Base
       @sidebar_collapsed = current_user.sidebar_collapsed
       @view_preference = current_user.view_preference.presence || "detailed"
       @media_card_size = current_user.media_card_size || 180
+
+      @collection_count = current_user.user_media.count
+      @collection_limit = SystemSetting.free_user_media_limit
     else
       @theme = cookies[:theme] || "dark"
       @sidebar_collapsed = cookies[:sidebar_collapsed] == "true"

@@ -1,0 +1,145 @@
+<div class="page-header" style="justify-content: center; margin-bottom: 3rem;">
+  <div style="text-align: center;">
+    <h1 class="page-title">Choose your Plan</h1>
+    <p class="page-subtitle">Increase your media limit and unlock premium features</p>
+  </div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 2rem; justify-content: center; max-width: 1150px; margin: 0 auto 3rem auto; align-items: stretch;">
+  <!-- Free Plan Card -->
+  <div class="glass-card" style="flex: 1 1 300px; display: flex; flex-direction: column; justify-content: space-between; border-color: <%= current_user.free_tier? ? 'var(--accent-primary)' : 'var(--panel-border)' %>; position: relative;">
+    <% if current_user.free_tier? %>
+      <div style="position: absolute; top: 1rem; right: 1rem; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 20px; padding: 0.15rem 0.65rem; font-size: 0.72rem; font-weight: bold; color: #a5b4fc;">
+        ACTIVE PLAN
+      </div>
+    <% end %>
+
+    <div>
+      <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-main);">Free Plan</div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Ideal for anyone starting to catalogue their first media items.</p>
+
+      <div style="margin-bottom: 2rem;">
+        <span style="font-size: 2rem; font-weight: 800; color: var(--text-main);">Free</span>
+      </div>
+
+      <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem; margin-bottom: 2rem; padding: 0;">
+        <li style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
+          <span style="color: var(--success-color);">✓</span> Limit of <strong><%= @free_limit %> media items</strong>
+        </li>
+        <li style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
+          <span style="color: var(--success-color);">✓</span> Manual cataloguing of media
+        </li>
+        <li style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); opacity: 0.6;">
+          <span style="color: var(--danger-color);">✗</span> Unlimited media additions
+        </li>
+        <li style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); opacity: 0.6;">
+          <span style="color: var(--danger-color);">✗</span> Support for custom themes
+        </li>
+      </ul>
+    </div>
+
+    <div>
+      <% if current_user.free_tier? %>
+        <button class="btn btn-secondary" style="width: 100%; cursor: not-allowed; opacity: 0.8;" disabled>
+          Current Plan Active
+        </button>
+      <% else %>
+        <%= button_to "Downgrade to Free", downgrade_plans_path, method: :post, class: "btn btn-secondary", style: "width: 100%;" %>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Premium Monthly Card -->
+  <div class="glass-card" style="flex: 1 1 300px; display: flex; flex-direction: column; justify-content: space-between; border-color: <%= current_user.subscription_tier == 'paid_monthly' ? 'var(--accent-secondary)' : 'var(--panel-border)' %>; position: relative;">
+    <% if current_user.subscription_tier == 'paid_monthly' %>
+      <div style="position: absolute; top: 1rem; right: 1rem; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 20px; padding: 0.15rem 0.65rem; font-size: 0.72rem; font-weight: bold; color: #d8b4fe;">
+        ACTIVE PLAN
+      </div>
+    <% end %>
+
+    <div>
+      <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-main);">Premium Monthly</div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Flexible monthly plan to manage your collection without limits.</p>
+
+      <div style="margin-bottom: 2rem; display: flex; align-items: baseline; gap: 0.25rem;">
+        <span style="font-size: 2rem; font-weight: 800; color: var(--text-main);">R$ <%= sprintf('%.2f', @monthly_price) %></span>
+        <span style="font-size: 0.9rem; color: var(--text-muted);">/ month</span>
+      </div>
+
+      <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem; margin-bottom: 2rem; padding: 0;">
+        <li style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
+          <span style="color: var(--success-color);">✓</span> <strong>100% Unlimited</strong> collection
+        </li>
+        <li style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
+          <span style="color: var(--success-color);">✓</span> Manual entry & online barcode search
+        </li>
+        <li style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
+          <span style="color: var(--success-color);">✓</span> Full access to track credits & metadata
+        </li>
+        <li style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
+          <span style="color: var(--success-color);">✓</span> Custom theme options
+        </li>
+      </ul>
+    </div>
+
+    <div>
+      <% if current_user.subscription_tier == 'paid_monthly' %>
+        <%= button_to "Downgrade to Free", downgrade_plans_path, method: :post, class: "btn btn-secondary", style: "width: 100%;" %>
+      <% else %>
+        <%= button_to "Subscribe Monthly", upgrade_plans_path(tier: "paid_monthly"), method: :post, class: "btn btn-primary", style: "width: 100%; font-weight: 600;" %>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Premium Yearly Card -->
+  <div class="glass-card" style="flex: 1 1 300px; display: flex; flex-direction: column; justify-content: space-between; border-color: <%= current_user.subscription_tier == 'paid_yearly' ? 'var(--accent-secondary)' : 'rgba(168, 85, 247, 0.4)' %>; box-shadow: 0 10px 30px rgba(168, 85, 247, 0.15); position: relative; background: linear-gradient(135deg, rgba(20, 26, 45, 0.85) 0%, rgba(30, 41, 59, 0.85) 100%);">
+    <div style="position: absolute; -webkit-transform: translate(0, -50%); transform: translate(0, -50%); top: 0; left: 2rem; background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%); border-radius: 20px; padding: 0.25rem 0.85rem; font-size: 0.72rem; font-weight: bold; color: white; box-shadow: 0 4px 10px rgba(168, 85, 247, 0.3); letter-spacing: 0.5px;">
+      BEST VALUE
+    </div>
+    
+    <% if current_user.subscription_tier == 'paid_yearly' %>
+      <div style="position: absolute; top: 1rem; right: 1rem; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 20px; padding: 0.15rem 0.65rem; font-size: 0.72rem; font-weight: bold; color: #d8b4fe;">
+        ACTIVE PLAN
+      </div>
+    <% end %>
+
+    <div>
+      <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-main); margin-top: 0.5rem;">Premium Yearly</div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Save big with yearly billing and enjoy full premium access without constraints.</p>
+
+      <div style="margin-bottom: 2rem; display: flex; align-items: baseline; gap: 0.25rem;">
+        <span style="font-size: 2rem; font-weight: 800; color: var(--text-main); background: linear-gradient(135deg, #c084fc 0%, #f472b6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">R$ <%= sprintf('%.2f', @yearly_price) %></span>
+        <span style="font-size: 0.9rem; color: var(--text-muted);">/ year</span>
+      </div>
+
+      <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem; margin-bottom: 2rem; padding: 0;">
+        <li style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
+          <span style="color: var(--success-color);">✓</span> <strong>100% Unlimited</strong> collection
+        </li>
+        <li style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
+          <span style="color: var(--success-color);">✓</span> Manual entry & online barcode search
+        </li>
+        <li style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
+          <span style="color: var(--success-color);">✓</span> Full access to track credits & metadata
+        </li>
+        <li style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
+          <span style="color: var(--success-color);">✓</span> Custom theme options
+        </li>
+        <% savings_pct = (((@monthly_price * 12) - @yearly_price) / (@monthly_price * 12) * 100).round rescue 15 %>
+        <% if savings_pct > 0 %>
+          <li style="display: flex; align-items: center; gap: 0.5rem; color: #34d399; font-weight: 600;">
+            <span style="color: #34d399;">✓</span> Save <%= savings_pct %>% compared to monthly!
+          </li>
+        <% end %>
+      </ul>
+    </div>
+
+    <div>
+      <% if current_user.subscription_tier == 'paid_yearly' %>
+        <%= button_to "Downgrade to Free", downgrade_plans_path, method: :post, class: "btn btn-secondary", style: "width: 100%;" %>
+      <% else %>
+        <%= button_to "Subscribe Yearly", upgrade_plans_path(tier: "paid_yearly"), method: :post, class: "btn btn-primary", style: "width: 100%; background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%); font-weight: 700; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);" %>
+      <% end %>
+    </div>
+  </div>
+</div>

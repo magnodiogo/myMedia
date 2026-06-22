@@ -15,7 +15,7 @@ class MediaEnrichmentService
 
       response = http.request(request)
 
-      raise "Erro HTTP #{response.code}: #{response.body}" unless response.code.to_i.between?(200, 299)
+      raise "HTTP Error #{response.code}: #{response.body}" unless response.code.to_i.between?(200, 299)
 
       JSON.parse(response.body)
     end
@@ -49,7 +49,7 @@ class MediaEnrichmentService
       uri = URI("#{BASE_URL}/artists/#{id}")
       HttpClient.get_json(uri, headers)
     rescue => e
-      Rails.logger.error "Erro ao buscar artista no Discogs: #{e.message}"
+      Rails.logger.error "Error fetching artist on Discogs: #{e.message}"
       nil
     end
 
@@ -71,7 +71,7 @@ class MediaEnrichmentService
       uri.query = URI.encode_www_form(query: "barcode:#{barcode}", fmt: "json")
       HttpClient.get_json(uri, headers)
     rescue => e
-      Rails.logger.error "Erro MusicBrainz: #{e.message}"
+      Rails.logger.error "MusicBrainz Error: #{e.message}"
       nil
     end
 
@@ -83,7 +83,7 @@ class MediaEnrichmentService
       uri.query = URI.encode_www_form(query: query_parts.join(" AND "), fmt: "json")
       HttpClient.get_json(uri, headers)
     rescue => e
-      Rails.logger.error "Erro MusicBrainz search_by_title_and_artist: #{e.message}"
+      Rails.logger.error "MusicBrainz search_by_title_and_artist Error: #{e.message}"
       nil
     end
 
@@ -92,7 +92,7 @@ class MediaEnrichmentService
       uri.query = URI.encode_www_form(inc: "url-rels artist-credits", fmt: "json")
       HttpClient.get_json(uri, headers)
     rescue => e
-      Rails.logger.error "Erro Release Group MusicBrainz: #{e.message}"
+      Rails.logger.error "MusicBrainz Release Group Error: #{e.message}"
       nil
     end
 
@@ -101,7 +101,7 @@ class MediaEnrichmentService
       uri.query = URI.encode_www_form(inc: "url-rels", fmt: "json")
       HttpClient.get_json(uri, headers)
     rescue => e
-      Rails.logger.error "Erro Artist MusicBrainz: #{e.message}"
+      Rails.logger.error "MusicBrainz Artist Error: #{e.message}"
       nil
     end
 
@@ -119,7 +119,7 @@ class MediaEnrichmentService
       uri = URI("https://www.wikidata.org/wiki/Special:EntityData/#{qid}.json")
       HttpClient.get_json(uri, { "User-Agent" => "ColecaoCDs/1.0" })
     rescue => e
-      Rails.logger.error "Erro Wikidata: #{e.message}"
+      Rails.logger.error "Wikidata Error: #{e.message}"
       nil
     end
 
@@ -158,7 +158,7 @@ class MediaEnrichmentService
         "url" => page["fullurl"]
       }
     rescue => e
-      Rails.logger.error "Erro Wikipedia #{@language}: #{e.message}"
+      Rails.logger.error "Wikipedia #{@language} Error: #{e.message}"
       nil
     end
 

@@ -1,8 +1,12 @@
 require "test_helper"
 
 class MediaControllerTest < ActionDispatch::IntegrationTest
+  include Devise::Test::IntegrationHelpers
+
   setup do
     @media_type = MediaType.create!(name: "CD RedBook", description: "Audio CD")
+    @admin = users(:two)
+    sign_in @admin
     @media = Media.create!(
       media_type: @media_type,
       title: "The Dark Side of the Moon",

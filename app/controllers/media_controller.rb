@@ -165,7 +165,7 @@ class MediaController < ApplicationController
 
   def refresh_metadata
     MediaEnrichmentService.new(@media).perform
-    redirect_to @media, notice: "Informações da mídia estão sendo atualizadas."
+    redirect_to @media, notice: "Media information is being updated."
   end
 
   private

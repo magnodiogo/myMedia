@@ -1,0 +1,29 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Read Notification</h1>
+    <p class="page-subtitle">Message details</p>
+  </div>
+</div>
+
+<div class="form-container" style="max-width: 700px; margin: 0 auto;">
+  <div class="glass-card" style="box-shadow: 0 15px 35px var(--accent-glow); padding: 2rem;">
+    <div style="border-bottom: 1px solid var(--panel-border); padding-bottom: 1.25rem; margin-bottom: 1.5rem;">
+      <h2 style="font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem; font-size: 1.4rem; line-height: 1.3;"><%= @notification.title %></h2>
+      <div style="font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;">
+        <span>📅 Received <%= @notification.created_at.strftime("%B %d, %Y at %H:%M") %></span>
+        <span>•</span>
+        <span><%= time_ago_in_words(@notification.created_at) %> ago</span>
+      </div>
+    </div>
+
+    <div style="font-size: 1rem; color: var(--text-main); line-height: 1.7; white-space: pre-wrap; margin-bottom: 2.5rem;">
+      <%= @notification.content %>
+    </div>
+
+    <div class="form-actions" style="border-top: 1px solid var(--panel-border); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+      <a href="<%= notifications_path %>" class="btn btn-secondary">← Back to Notifications</a>
+      
+      <%= button_to "Delete Message", notification_path(@notification), method: :delete, class: "btn btn-danger", style: "background-color: var(--danger-color);", data: { confirm: "Are you sure you want to delete this notification?" } %>
+    </div>
+  </div>
+</div>

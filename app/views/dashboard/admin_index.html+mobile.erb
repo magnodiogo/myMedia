@@ -1,0 +1,201 @@
+<div class="mobile-dashboard-header">
+  <div>
+    <span class="welcome-text">Admin Mode 👑</span>
+    <h1 class="mobile-page-title">Admin Dashboard</h1>
+  </div>
+  <% if current_user&.admin? %>
+    <a href="<%= new_media_path %>" class="btn-circular-add" title="Add Media">+</a>
+  <% end %>
+</div>
+
+<!-- Mobile Stats Grid/Row -->
+<div class="mobile-stats-row" style="flex-wrap: wrap; gap: 0.5rem; justify-content: space-between;">
+  <div class="mobile-stat-pill" style="flex: 1 1 45%; margin-bottom: 0.5rem; min-width: 140px;">
+    <span class="pill-emoji">👥</span>
+    <div class="pill-data">
+      <span class="pill-value"><%= @total_users %></span>
+      <span class="pill-label">Users</span>
+    </div>
+  </div>
+  <div class="mobile-stat-pill" style="flex: 1 1 45%; margin-bottom: 0.5rem; min-width: 140px;">
+    <span class="pill-emoji">💿</span>
+    <div class="pill-data">
+      <span class="pill-value"><%= @total_unique_media %></span>
+      <span class="pill-label">Titles</span>
+    </div>
+  </div>
+  <div class="mobile-stat-pill" style="flex: 1 1 45%; min-width: 140px;">
+    <span class="pill-emoji">📦</span>
+    <div class="pill-data">
+      <span class="pill-value"><%= @total_user_media %></span>
+      <span class="pill-label">Collected</span>
+    </div>
+  </div>
+  <div class="mobile-stat-pill" style="flex: 1 1 45%; min-width: 140px;">
+    <span class="pill-emoji">🎤</span>
+    <div class="pill-data">
+      <span class="pill-value"><%= @total_artists %></span>
+      <span class="pill-label">Artists</span>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Subscription Section -->
+<div class="mobile-section" style="margin-top: 1.5rem;">
+  <div class="mobile-section-header">
+    <h2>Subscription & Revenue</h2>
+  </div>
+  
+  <div class="mobile-stats-row" style="flex-wrap: wrap; gap: 0.5rem; justify-content: space-between; margin-bottom: 1rem;">
+    <div class="mobile-stat-pill" style="flex: 1 1 45%; min-width: 140px; margin-bottom: 0.5rem; border-left: 3px solid #a855f7;">
+      <span class="pill-emoji">💎</span>
+      <div class="pill-data">
+        <span class="pill-value"><%= @premium_users_count %></span>
+        <span class="pill-label">Premium Users</span>
+      </div>
+    </div>
+    <div class="mobile-stat-pill" style="flex: 1 1 45%; min-width: 140px; margin-bottom: 0.5rem; border-left: 3px solid var(--accent-primary);">
+      <span class="pill-emoji">👥</span>
+      <div class="pill-data">
+        <span class="pill-value"><%= @free_users_count %></span>
+        <span class="pill-label">Free Users</span>
+      </div>
+    </div>
+    <div class="mobile-stat-pill" style="flex: 1 1 45%; min-width: 140px; border-left: 3px solid #10b981;">
+      <span class="pill-emoji">💵</span>
+      <div class="pill-data">
+        <span class="pill-value" style="font-size: 1rem;"><%= number_to_currency(@monthly_revenue_estimation, unit: "R$ ") %></span>
+        <span class="pill-label">Monthly Est.</span>
+      </div>
+    </div>
+    <div class="mobile-stat-pill" style="flex: 1 1 45%; min-width: 140px; border-left: 3px solid #f59e0b;">
+      <span class="pill-emoji">📈</span>
+      <div class="pill-data">
+        <span class="pill-value" style="font-size: 1rem;"><%= number_to_currency(@annual_revenue_estimation, unit: "R$ ") %></span>
+        <span class="pill-label">Annual Est.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Highlights Section -->
+<div class="mobile-section" style="margin-top: 1.5rem;">
+  <div class="mobile-section-header">
+    <h2>Highlights</h2>
+  </div>
+  
+  <div class="mobile-card-list">
+    <!-- Top Collector -->
+    <% if @top_user %>
+      <div class="mobile-list-item" style="pointer-events: none; padding: 1rem; border: 1px solid var(--panel-border); background-color: var(--panel-bg); border-radius: var(--border-radius); display: flex; align-items: center;">
+        <span class="pill-emoji" style="font-size: 1.5rem; margin-right: 0.75rem;">🏆</span>
+        <div class="mobile-item-details" style="flex: 1;">
+          <span class="mobile-item-title" style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Top Collector</span>
+          <span class="mobile-item-desc" style="font-weight: 600; color: var(--text-main); margin-top: 0.15rem; font-size: 0.95rem;">
+            <%= @top_user.name.presence || @top_user.email %>
+          </span>
+          <span class="mobile-item-desc" style="font-size: 0.75rem; color: var(--accent-secondary); margin-top: 0.1rem; font-weight: bold;">
+            <%= @top_user_count %> items collected
+          </span>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Last Addition -->
+    <% if @last_addition %>
+      <div class="mobile-list-item" style="pointer-events: none; padding: 1rem; border: 1px solid var(--panel-border); background-color: var(--panel-bg); border-radius: var(--border-radius); display: flex; align-items: center; margin-top: 0.5rem;">
+        <span class="pill-emoji" style="font-size: 1.5rem; margin-right: 0.75rem;">⚡</span>
+        <div class="mobile-item-details" style="flex: 1;">
+          <span class="mobile-item-title" style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Last Addition</span>
+          <span class="mobile-item-desc" style="font-weight: 600; color: var(--text-main); margin-top: 0.15rem; font-size: 0.95rem;">
+            <%= @last_media_added&.title %>
+          </span>
+          <span class="mobile-item-desc" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.1rem;">
+            By <%= @last_user_added&.name.presence || @last_user_added&.email %> • <%= time_ago_in_words(@last_addition.created_at) %> ago
+          </span>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Top Collectors Scroll -->
+<div class="mobile-section">
+  <div class="mobile-section-header">
+    <h2>Top Collectors</h2>
+  </div>
+  
+  <div class="mobile-horizontal-scroll">
+    <% @top_users.each_with_index do |user, index| %>
+      <div class="mobile-scroll-card" style="width: 140px; padding: 1.25rem 0.75rem; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
+        <span style="position: absolute; top: 0.5rem; left: 0.5rem; font-size: 0.7rem; font-weight: bold; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+          #<%= index + 1 %>
+        </span>
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--panel-border); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 0.5rem; font-weight: bold; color: var(--accent-primary);">
+          <%= user.name.presence ? user.name[0].upcase : user.email[0].upcase %>
+        </div>
+        <span class="mobile-scroll-name" style="text-align: center; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.8rem; font-weight: 600;"><%= user.name.presence || user.email.split('@').first %></span>
+        <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem; font-weight: bold;"><%= user.media_count %> items</span>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Recent Activity List -->
+<div class="mobile-section">
+  <div class="mobile-section-header">
+    <h2>Recent Activity</h2>
+  </div>
+  
+  <% if @recent_additions.any? %>
+    <div class="mobile-card-list">
+      <% @recent_additions.each do |addition| %>
+        <a href="<%= media_path(addition.media) %>" class="mobile-list-item">
+          <% if addition.media&.cover_image&.attached? %>
+            <%= image_tag addition.media.cover_image, class: "mobile-item-img" %>
+          <% else %>
+            <div class="mobile-item-img-placeholder">💿</div>
+          <% end %>
+          <div class="mobile-item-details">
+            <span class="mobile-item-title"><%= addition.media&.title %></span>
+            <span class="mobile-item-desc" style="font-weight: 500;"><%= addition.media&.artist&.name %></span>
+            <span class="mobile-item-desc" style="font-size: 0.72rem; margin-top: 0.15rem; color: var(--text-muted);">
+              By <%= addition.user&.name.presence || addition.user&.email %> • <%= time_ago_in_words(addition.created_at) %>
+            </span>
+          </div>
+          <span class="mobile-chevron">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width: 14px; height: 14px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </span>
+        </a>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="mobile-empty-state">
+      <p>No activity yet.</p>
+    </div>
+  <% end %>
+</div>
+
+<!-- Format distribution company wide -->
+<div class="mobile-section" style="margin-bottom: 2.5rem;">
+  <div class="mobile-section-header">
+    <h2>Company Formats</h2>
+  </div>
+  
+  <div class="mobile-formats-list">
+    <% @media_types_with_count.each do |(id, name), count| %>
+      <% pct = @total_user_media > 0 ? (count.to_f / @total_user_media * 100).round : 0 %>
+      <div class="mobile-format-row">
+        <div class="mobile-format-info">
+          <span class="mobile-format-name"><%= name %></span>
+          <span class="mobile-format-pct"><%= count %> <%= count == 1 ? 'item' : 'items' %> (<%= pct %>%)</span>
+        </div>
+        <div class="mobile-progress-bg">
+          <div class="mobile-progress-fill" style="width: <%= pct %>%; background: var(--accent-gradient);"></div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
