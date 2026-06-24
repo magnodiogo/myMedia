@@ -1,3 +1,13 @@
+# Seed Users
+puts "Seeding Users..."
+CommonUser.find_or_create_by!(email: "john@example.com") do |u|
+  u.name = "John"
+end
+
+AdminUser.find_or_create_by!(email: "admin@example.com") do |u|
+  u.name = "Admin User"
+end
+
 # Seed MediaTypes
 puts "Seeding Media Types..."
 cd_redbook = MediaType.find_or_create_by!(name: "CD RedBook") do |mt|
