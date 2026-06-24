@@ -11,6 +11,22 @@ class TrackTest < ActiveSupport::TestCase
     assert track.valid?
   end
 
+  test "should be valid with album only" do
+    track = Track.new(album: albums(:kind_of_blue), title: "So What", track_number: 1, duration: "9:22")
+    assert track.valid?
+  end
+
+  test "should assign album from media" do
+    track = Track.create!(media: @media, title: "So What", track_number: 1, duration: "9:22")
+    assert_equal @media.album, track.album
+  end
+
+  test "should be invalid without media or album" do
+    track = Track.new(title: "So What", track_number: 1, duration: "9:22")
+    assert_not track.valid?
+    assert_includes track.errors[:base], "Track must belong to a media item or an album"
+  end
+
   test "should support position attribute" do
     track = Track.new(media: @media, title: "Speak to Me", track_number: 1, duration: "1:30", position: "A1")
     assert track.valid?

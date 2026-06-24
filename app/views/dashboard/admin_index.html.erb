@@ -4,7 +4,7 @@
     <p class="page-subtitle">Company-wide overview and user statistics</p>
   </div>
   <% if current_user&.admin? %>
-    <a href="<%= new_media_path %>" class="btn btn-primary">+ Add Media to DB</a>
+    <a href="<%= new_media_path %>" class="btn btn-primary">+ Add Physical Media</a>
   <% end %>
 </div>
 
@@ -23,10 +23,10 @@
   <div class="stat-card admin-stat-card-glow">
     <div class="stat-icon-bg">💿</div>
     <div class="stat-info">
-      <div class="stat-label">Database Titles</div>
+      <div class="stat-label">Physical Media Records</div>
       <div class="stat-value"><%= @total_unique_media %></div>
       <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
-        Unique media records
+        Album editions and pressings
       </div>
     </div>
   </div>
@@ -36,7 +36,7 @@
       <div class="stat-label">Items Collected</div>
       <div class="stat-value"><%= @total_user_media %></div>
       <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
-        Total user additions
+        Total owned copies
       </div>
     </div>
   </div>
@@ -119,7 +119,7 @@
           <div style="width: 64px; height: 64px; border-radius: var(--border-radius); background: rgba(255,255,255,0.03); border: 1px solid var(--panel-border); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">💿</div>
         <% end %>
         <div style="flex: 1;">
-          <h4 style="margin: 0; font-size: 1.05rem; font-weight: 600;"><%= @last_media_added&.title %></h4>
+          <h4 style="margin: 0; font-size: 1.05rem; font-weight: 600;"><%= @last_media_added&.album&.title || @last_media_added&.title %></h4>
           <p style="margin: 0.15rem 0 0 0; font-size: 0.85rem; color: var(--text-muted);"><%= @last_media_added&.artist&.name %></p>
           <div style="margin-top: 0.4rem; display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem;">
             <span style="color: var(--text-muted);">By:</span>
@@ -131,7 +131,7 @@
       </div>
     <% else %>
       <div style="padding: 1rem 0; color: var(--text-muted); font-size: 0.9rem;">
-        No media additions recorded in the system yet.
+        No physical media additions recorded in the system yet.
       </div>
     <% end %>
   </div>
@@ -235,7 +235,7 @@
               <% end %>
               <div>
                 <a href="<%= media_path(addition.media) %>" style="font-weight: 600; color: var(--text-main); text-decoration: none; font-size: 0.95rem;">
-                  <%= addition.media&.title %>
+                  <%= addition.media&.album&.title || addition.media&.title %>
                 </a>
                 <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">
                   <%= addition.media&.artist&.name %> • <%= addition.media&.media_type&.name %>

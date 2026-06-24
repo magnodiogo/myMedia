@@ -1,7 +1,7 @@
 <div class="page-header">
   <div>
     <h1 class="page-title"><%= @media_type.name %></h1>
-    <p class="page-subtitle">Format overview and item catalog</p>
+    <p class="page-subtitle">Physical format overview and edition catalog</p>
   </div>
   <div style="display: flex; gap: 0.5rem;">
     <% if current_user&.admin? %>
@@ -15,7 +15,7 @@
   <div class="stat-card">
     <div class="stat-icon-bg">💿</div>
     <div class="stat-info">
-      <div class="stat-label">Total Items in Format</div>
+      <div class="stat-label">Total Editions in Format</div>
       <div class="stat-value"><%= @media.count %></div>
     </div>
   </div>
@@ -27,12 +27,13 @@
 </div>
 
 <div class="section-box">
-  <h3>Items in this Format</h3>
+  <h3>Editions in this Format</h3>
   <% if @media.any? %>
     <table class="custom-table">
       <thead>
         <tr>
-          <th>Title</th>
+          <th>Album</th>
+          <th>Edition</th>
           <th>Artist</th>
           <th>Year</th>
           <th>Catalog Number</th>
@@ -42,7 +43,8 @@
       <tbody>
         <% @media.each do |item| %>
           <tr>
-            <td style="font-weight: 600; color: var(--text-main);"><%= item.title %></td>
+            <td style="font-weight: 600; color: var(--text-main);"><%= item.album&.title || item.title %></td>
+            <td style="color: var(--text-muted);"><%= item.title %></td>
             <td style="color: var(--text-muted);"><%= link_to item.artist.name, artist_path(item.artist), style: "color: #a5b4fc; text-decoration: none;" %></td>
             <td style="color: var(--text-muted);"><%= item.release_year %></td>
             <td style="font-family: monospace; color: var(--text-muted);"><%= item.catalog_number %></td>
@@ -56,6 +58,6 @@
       </tbody>
     </table>
   <% else %>
-    <p style="color: var(--text-muted); padding: 1rem 0;">No items in this format yet.</p>
+    <p style="color: var(--text-muted); padding: 1rem 0;">No editions in this format yet.</p>
   <% end %>
 </div>

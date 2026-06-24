@@ -4,7 +4,7 @@
     <h1 class="mobile-page-title">Admin Dashboard</h1>
   </div>
   <% if current_user&.admin? %>
-    <a href="<%= new_media_path %>" class="btn-circular-add" title="Add Media">+</a>
+    <a href="<%= new_media_path %>" class="btn-circular-add" title="Add Physical Media">+</a>
   <% end %>
 </div>
 
@@ -21,7 +21,7 @@
     <span class="pill-emoji">💿</span>
     <div class="pill-data">
       <span class="pill-value"><%= @total_unique_media %></span>
-      <span class="pill-label">Titles</span>
+      <span class="pill-label">Physical Media</span>
     </div>
   </div>
   <div class="mobile-stat-pill" style="flex: 1 1 45%; min-width: 140px;">
@@ -108,7 +108,7 @@
         <div class="mobile-item-details" style="flex: 1;">
           <span class="mobile-item-title" style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Last Addition</span>
           <span class="mobile-item-desc" style="font-weight: 600; color: var(--text-main); margin-top: 0.15rem; font-size: 0.95rem;">
-            <%= @last_media_added&.title %>
+            <%= @last_media_added&.album&.title || @last_media_added&.title %>
           </span>
           <span class="mobile-item-desc" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.1rem;">
             By <%= @last_user_added&.name.presence || @last_user_added&.email %> • <%= time_ago_in_words(@last_addition.created_at) %> ago
@@ -157,7 +157,7 @@
             <div class="mobile-item-img-placeholder">💿</div>
           <% end %>
           <div class="mobile-item-details">
-            <span class="mobile-item-title"><%= addition.media&.title %></span>
+            <span class="mobile-item-title"><%= addition.media&.album&.title || addition.media&.title %></span>
             <span class="mobile-item-desc" style="font-weight: 500;"><%= addition.media&.artist&.name %></span>
             <span class="mobile-item-desc" style="font-size: 0.72rem; margin-top: 0.15rem; color: var(--text-muted);">
               By <%= addition.user&.name.presence || addition.user&.email %> • <%= time_ago_in_words(addition.created_at) %>

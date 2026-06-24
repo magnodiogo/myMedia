@@ -18,6 +18,7 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     get root_url
     assert_response :success
     assert_select ".stat-label", text: "Artists"
+    assert_select ".stat-label", text: "Physical Formats"
   end
 
   test "should display latest artists section" do

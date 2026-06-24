@@ -2409,6 +2409,162 @@ body {
   color: #a5b4fc;
 }
 
+/* Artist Detail */
+.artist-biography {
+  position: relative;
+}
+
+.read-more-content {
+  overflow: hidden;
+  position: relative;
+  transition: max-height var(--transition-speed) ease;
+}
+
+.read-more-content.is-collapsible::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 3rem;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(20, 26, 45, 0), rgba(20, 26, 45, 0.95));
+}
+
+:root.light-theme .read-more-content.is-collapsible::after {
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.95));
+}
+
+.read-more-content.is-expanded {
+  max-height: none !important;
+}
+
+.read-more-content.is-collapsible.is-expanded::after {
+  display: none;
+}
+
+.biography-content {
+  max-height: 8.5rem;
+}
+
+.discography-content {
+  max-height: 31rem;
+}
+
+.read-more-toggle {
+  margin-top: 0.85rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #a5b4fc;
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.45rem 0.9rem;
+  transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease, transform var(--transition-speed) ease;
+}
+
+.read-more-toggle:hover {
+  background-color: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.35);
+  transform: translateY(-1px);
+}
+
+.artist-tabs-card {
+  margin-top: 0;
+}
+
+.discography-group + .discography-group {
+  margin-top: 2.25rem;
+}
+
+.discography-group-header {
+  align-items: center;
+  border-bottom: 1px solid var(--panel-border);
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+}
+
+.discography-group-header h3 {
+  border: none;
+  color: var(--text-main);
+  font-size: 1.1rem;
+  margin: 0;
+  padding: 0;
+}
+
+.discography-group-header span {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.artist-discography-grid,
+.artist-collection-grid {
+  --simple-card-size: 160px;
+}
+
+.album-fact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.album-fact {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+}
+
+.album-fact span {
+  color: var(--text-muted);
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.album-fact strong {
+  color: var(--text-main);
+  font-size: 1.15rem;
+}
+
+.participants-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.participant-row {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--border-radius);
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 0.9rem 1rem;
+}
+
+.participant-row strong {
+  color: var(--text-main);
+}
+
+.participant-row span {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  text-align: right;
+}
+
+.album-editions-grid {
+  --simple-card-size: 160px;
+}
+
 /* Mobile Responsiveness (Drawer menu) */
 @media (max-width: 768px) {
   /* Display hamburger button */
@@ -3516,7 +3672,4 @@ body {
   font-size: 0.75rem;
   color: var(--text-muted);
 }
-
-
-
 

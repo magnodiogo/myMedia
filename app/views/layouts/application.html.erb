@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="<%= 'light-theme' if @theme == 'light' %>">
   <head>
-    <title>myMedia Collection</title>
+    <title>myMedia Physical Collection</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
@@ -45,12 +45,12 @@
               </li>
               <li>
                 <a href="<%= media_index_path %>" class="nav-link <%= 'active' if controller_name == 'media' %>">
-                  <span class="nav-icon">💿</span> <span class="nav-text">Media Collection</span>
+                  <span class="nav-icon">💿</span> <span class="nav-text">Physical Media</span>
                 </a>
               </li>
               <li>
                 <a href="<%= media_types_path %>" class="nav-link <%= 'active' if controller_name == 'media_types' %>">
-                  <span class="nav-icon">🏷️</span> <span class="nav-text">Media Types</span>
+                  <span class="nav-icon">🏷️</span> <span class="nav-text">Physical Formats</span>
                 </a>
               </li>
               <li>

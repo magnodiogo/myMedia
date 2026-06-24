@@ -1,13 +1,16 @@
 class ArtistsController < ApplicationController
-  before_action :set_artist, only: %i[ show edit update destroy update_wiki update_photo ]
-  before_action :require_admin!, only: %i[ new create edit update destroy update_wiki update_photo ]
+  before_action :set_artist, only: %i[ show edit update destroy update_wiki update_photo load_discography ]
+  before_action :require_admin!, only: %i[ new create edit update destroy update_wiki update_photo load_discography ]
 
   def index
     @artists = Artist.all.order(:name)
   end
 
   def show
-    @media = @artist.media.includes(:media_type).order(title: :asc)
+    @albums = @artist.albums.includes(:media).with_attached_cover_image.order(:release_year, :title)
+    @albums_by_type = @albums.group_by(&:album_type)
+    @media = @artist.media.includes(:album, :media_type).order(title: :asc)
+    @collection_items = current_user.user_media.joins(:media).includes(media: [:album, :media_type, { cover_image_attachment: :blob }]).where(media: { artist_id: @artist.id }).order(created_at: :desc) if current_user
   end
 
   def new
@@ -55,6 +58,16 @@ class ArtistsController < ApplicationController
       redirect_to edit_artist_path(@artist), notice: "Artist photo successfully updated from Wikipedia."
     else
       redirect_to edit_artist_path(@artist), alert: "Could not find a Wikipedia photo for this artist."
+    end
+  end
+
+  def load_discography
+    result = @artist.load_discography
+
+    if result[:error].present?
+      redirect_to artist_path(@artist), alert: result[:error]
+    else
+      redirect_to artist_path(@artist), notice: "Discography loaded: #{result[:imported]} imported, #{result[:updated]} updated, #{result[:skipped]} skipped."
     end
   end
 

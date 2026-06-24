@@ -44,6 +44,23 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
     assert_select "h1.page-title", text: @artist.name
   end
 
+  test "common user should see discography and collection tabs" do
+    sign_out @admin
+    sign_in users(:one)
+    @artist.update!(bio: "Queen biography. " * 40)
+
+    get artist_url(@artist)
+
+    assert_response :success
+    assert_select ".tab-link", text: "Discography"
+    assert_select ".tab-link", text: "My Collection"
+    assert_select ".read-more-toggle", text: "More", minimum: 1
+    assert_select ".discography-group-header h3", text: "Studio"
+    assert_select "a[href=?]", album_path(albums(:night_at_the_opera)), minimum: 1
+    assert_select ".artist-collection-grid .media-card", minimum: 1
+    assert_select "form button", text: "Load Discography", count: 0
+  end
+
   test "should get edit" do
     get edit_artist_url(@artist)
     assert_response :success
@@ -177,6 +194,55 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
     sign_in users(:one) # Common user
 
     post update_photo_artist_url(@artist)
+    assert_redirected_to root_url
+    assert_equal "Only administrator users can perform this action.", flash[:alert]
+  end
+
+  test "admin should be able to load discography" do
+    Artist.class_eval do
+      alias_method :orig_load_discography, :load_discography
+      def load_discography
+        { imported: 2, updated: 1, skipped: 0, error: nil }
+      end
+    end
+
+    begin
+      post load_discography_artist_url(@artist)
+      assert_redirected_to artist_url(@artist)
+      assert_equal "Discography loaded: 2 imported, 1 updated, 0 skipped.", flash[:notice]
+    ensure
+      Artist.class_eval do
+        alias_method :load_discography, :orig_load_discography
+        remove_method :orig_load_discography
+      end
+    end
+  end
+
+  test "admin should see error if load discography fails" do
+    Artist.class_eval do
+      alias_method :orig_load_discography, :load_discography
+      def load_discography
+        { imported: 0, updated: 0, skipped: 0, error: "Artist not found on MusicBrainz." }
+      end
+    end
+
+    begin
+      post load_discography_artist_url(@artist)
+      assert_redirected_to artist_url(@artist)
+      assert_equal "Artist not found on MusicBrainz.", flash[:alert]
+    ensure
+      Artist.class_eval do
+        alias_method :load_discography, :orig_load_discography
+        remove_method :orig_load_discography
+      end
+    end
+  end
+
+  test "common user should not be able to load discography" do
+    sign_out @admin
+    sign_in users(:one)
+
+    post load_discography_artist_url(@artist)
     assert_redirected_to root_url
     assert_equal "Only administrator users can perform this action.", flash[:alert]
   end

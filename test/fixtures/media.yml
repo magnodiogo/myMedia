@@ -1,8 +1,10 @@
 one:
+  album: night_at_the_opera
   media_type: one
   title: "A Night at the Opera"
   artist: queen
 two:
+  album: kind_of_blue
   media_type: two
   title: "Kind of Blue"
   artist: miles_davis

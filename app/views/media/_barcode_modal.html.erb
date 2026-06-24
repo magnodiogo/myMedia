@@ -19,18 +19,18 @@
 
       <!-- Form for detailed metadata (starts collapsed/hidden unless found or forced manual) -->
       <div id="barcode-metadata-form" style="display: none; border-top: 1px solid var(--panel-border); padding-top: 1.5rem; margin-top: 1.5rem; animation: fadeIn 0.3s ease;">
-        <h3 style="font-size: 1.05rem; color: #a5b4fc; margin-bottom: 1.25rem;">Confirm Media Details</h3>
+        <h3 style="font-size: 1.05rem; color: #a5b4fc; margin-bottom: 1.25rem;">Confirm Physical Media Details</h3>
         
         <%= form_with(model: Media.new, local: true, html: { id: "barcode-save-form" }) do |form| %>
           <%= form.hidden_field :cover_url, data: { barcode_lookup_target: "coverUrl" } %>
 
           <div class="form-group">
-            <%= form.label :media_type_id, "Format / Media Type", class: "form-label" %>
+            <%= form.label :media_type_id, "Physical Format", class: "form-label" %>
             <%= form.collection_select :media_type_id, MediaType.all, :id, :name, { prompt: "Select a format..." }, { class: "form-control", required: true } %>
           </div>
 
           <div class="form-group">
-            <%= form.label :title, "Title", class: "form-label" %>
+            <%= form.label :title, "Album Title", class: "form-label" %>
             <%= form.text_field :title, class: "form-control", required: true, data: { barcode_lookup_target: "title" } %>
           </div>
 
@@ -45,7 +45,7 @@
           </div>
 
           <div class="form-group">
-            <%= form.label :release_year, "Release Year", class: "form-label" %>
+            <%= form.label :release_year, "Edition Release Year", class: "form-label" %>
             <%= form.number_field :release_year, class: "form-control", data: { barcode_lookup_target: "year" } %>
           </div>
 
@@ -60,7 +60,7 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">Media Cover</label>
+            <label class="form-label">Cover Art</label>
             <div data-barcode-lookup-target="preview">
               <span style="font-size: 0.85rem; color: var(--text-muted);">No cover selected</span>
             </div>
@@ -68,8 +68,8 @@
           </div>
 
           <div class="form-group">
-            <%= form.label :notes, "Collector Notes (Optional)", class: "form-label" %>
-            <%= form.text_area :notes, rows: 3, class: "form-control", placeholder: "e.g., Condition, physical location..." %>
+            <%= form.label :notes, "Edition Notes (Optional)", class: "form-label" %>
+            <%= form.text_area :notes, rows: 3, class: "form-control", placeholder: "e.g., pressing, remaster, packaging..." %>
           </div>
 
           <div style="display: flex; gap: 1rem; margin-top: 2rem; justify-content: flex-end;">

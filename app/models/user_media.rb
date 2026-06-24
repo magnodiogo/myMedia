@@ -23,7 +23,7 @@ class UserMedia < ApplicationRecord
     if user && user.free_tier?
       limit = SystemSetting.free_user_media_limit
       if user.user_media.count >= limit
-        errors.add(:base, "You have reached the limit of #{limit} media items for free accounts. Please upgrade to the Premium plan to add more media.")
+        errors.add(:base, "You have reached the limit of #{limit} physical media items for free accounts. Please upgrade to the Premium plan to add more physical media.")
       end
     end
   end

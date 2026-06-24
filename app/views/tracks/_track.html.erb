@@ -2,9 +2,10 @@
   <div class="track-cell track-col-number" style="display: table-cell; vertical-align: middle; padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.03);"><%= track.track_number %></div>
   <div class="track-cell track-col-title" style="display: table-cell; vertical-align: middle; padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.03);">
     <div><%= track.title %></div>
-    <% if track.track_credits.any? %>
+    <% composer_credits = track.track_credits.select { |credit| AlbumCredit.category_for_role(credit.function) == "composer" } %>
+    <% if composer_credits.any? %>
       <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
-        <%= track.track_credits.map { |tc| "#{tc.function}: #{tc.name}" }.join(", ") %>
+        <%= composer_credits.map { |tc| "#{tc.function}: #{tc.name}" }.join(", ") %>
       </div>
     <% end %>
   </div>
@@ -34,4 +35,3 @@
     <% end %>
   </div>
 </turbo-frame>
-

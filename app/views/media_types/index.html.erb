@@ -1,10 +1,10 @@
 <div class="page-header">
   <div>
-    <h1 class="page-title">Media Types</h1>
+    <h1 class="page-title">Physical Formats</h1>
     <p class="page-subtitle">Configure formats/types for your media collection</p>
   </div>
   <% if current_user&.admin? %>
-    <a href="<%= new_media_type_path %>" class="btn btn-primary">+ Add Media Type</a>
+    <a href="<%= new_media_type_path %>" class="btn btn-primary">+ Add Physical Format</a>
   <% end %>
 </div>
 
@@ -38,7 +38,7 @@
     </table>
   <% else %>
     <% if current_user&.admin? %>
-      <p style="color: var(--text-muted); padding: 1rem 0;">No media types defined yet. Click "+ Add Media Type" to create one.</p>
+      <p style="color: var(--text-muted); padding: 1rem 0;">No physical formats defined yet. Click "+ Add Physical Format" to create one.</p>
     <% else %>
       <p style="color: var(--text-muted); padding: 1rem 0;">No media types defined yet.</p>
     <% end %>

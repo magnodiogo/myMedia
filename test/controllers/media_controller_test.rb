@@ -94,26 +94,49 @@ class MediaControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should show media" do
+    @media.update!(duration_seconds: 3_250)
+    MediaGenre.create!(name: "Pop/Rock").media_genre_links.create!(media: @media)
+    MediaStyle.create!(name: "Album Rock").media_style_links.create!(media: @media)
+    RecordingLocation.create!(name: "British Grove").media_recording_location_links.create!(media: @media)
+    person = CreditPerson.create!(name: "Glyn Johns")
+    @media.album_credits.create!(credit_person: person, person_name: "Glyn Johns", role: "Producer", source: "allmusic")
+
     get media_url(@media)
+
     assert_response :success
+    assert_select ".spec-label", text: "Duration"
+    assert_select ".spec-value", text: "54:10"
+    assert_select ".spec-label", text: "Genre"
+    assert_select ".spec-value", text: "Pop/Rock"
+    assert_select ".spec-label", text: "Styles"
+    assert_select ".spec-value", text: "Album Rock"
+    assert_select ".spec-label", text: "Recording Location"
+    assert_select ".spec-value", text: "British Grove"
+    assert_select ".tab-link", text: "Credits"
+    assert_select "a[href=?]", credit_person_path(person), text: "Glyn Johns"
   end
 
   test "should get edit" do
     get edit_media_url(@media)
     assert_response :success
+    assert_select "label", text: "AllMusic Album URL"
   end
 
   test "should update media" do
+    allmusic_url = "https://www.allmusic.com/album/i-still-do-mw0002922480"
+
     patch media_url(@media), params: {
       media: {
         title: "The Dark Side of the Moon (Updated)",
-        artist: "Pink Floyd (Updated)"
+        artist: "Pink Floyd (Updated)",
+        allmusic_url: allmusic_url
       }
     }
     assert_redirected_to media_url(@media)
     @media.reload
     assert_equal "The Dark Side of the Moon (Updated)", @media.title
     assert_equal "Pink Floyd (Updated)", @media.artist.name
+    assert_equal allmusic_url, @media.allmusic_url
   end
 
   test "should destroy media" do

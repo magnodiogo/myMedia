@@ -1,0 +1,108 @@
+<div class="page-header" style="margin-bottom: 2rem;">
+  <div>
+    <h1 class="page-title"><%= @credit_person.name %></h1>
+    <p class="page-subtitle">Credits, collaborations, and physical media in your catalog</p>
+  </div>
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    <% if current_user&.admin? %>
+      <%= button_to "Sync Bio", update_wiki_credit_person_path(@credit_person), method: :post, class: "btn btn-secondary" %>
+      <%= button_to "Sync Photo", update_photo_credit_person_path(@credit_person), method: :post, class: "btn btn-secondary" %>
+    <% end %>
+    <a href="<%= media_index_path %>" class="btn btn-secondary">Back to Collection</a>
+  </div>
+</div>
+
+<div class="spec-card-premium" style="margin-bottom: 2.5rem;">
+  <div class="spec-card-cover-side" style="width: 200px;">
+    <% if @credit_person.photo.attached? %>
+      <div class="detail-cover-wrapper" style="border-radius: 50%; width: 200px; height: 200px; overflow: hidden; border: 2px solid var(--panel-border);">
+        <%= image_tag @credit_person.photo, class: "detail-cover", style: "width: 100%; height: 100%; object-fit: cover;" %>
+      </div>
+    <% else %>
+      <div class="detail-cover-placeholder" style="border-radius: 50%; width: 200px; height: 200px;">
+        <span class="placeholder-icon" style="font-size: 4.5rem; opacity: 0.5;">👤</span>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="spec-card-info-side" style="margin-top: 0.5rem;">
+    <div class="spec-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <h2 style="font-size: 1.6rem; color: #a5b4fc; margin: 0;"><%= @credit_person.name %></h2>
+      <div style="background-color: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #a5b4fc; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+        <%= pluralize(@credits_by_media.size, "media item") %> credited
+      </div>
+    </div>
+
+    <div class="artist-biography" data-controller="read-more" data-read-more-collapsed-label-value="More" data-read-more-expanded-label-value="Less" style="margin-top: 1.5rem;">
+      <h3 style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase;">Biography</h3>
+      <div class="read-more-content biography-content <%= 'is-collapsible' if @credit_person.bio.present? && @credit_person.bio.length > 320 %>" data-read-more-target="content">
+        <p style="color: var(--text-main); line-height: 1.6; font-size: 0.95rem; white-space: pre-wrap; margin: 0;"><%= @credit_person.bio.presence || "No biography available for this credit person yet." %></p>
+      </div>
+      <% if @credit_person.bio.present? && @credit_person.bio.length > 320 %>
+        <button type="button" class="read-more-toggle" data-read-more-target="button" data-action="click->read-more#toggle">More</button>
+      <% end %>
+    </div>
+
+    <% if @credit_person.wikipedia_url.present? || @credit_person.allmusic_url.present? %>
+      <div class="spec-notes" style="margin-top: 1.5rem;">
+        <h3>External Sources</h3>
+        <div class="collector-notes-content">
+          <% if @credit_person.wikipedia_url.present? %>
+            <p><%= link_to "Wikipedia", @credit_person.wikipedia_url, target: "_blank", rel: "noopener", style: "color: #a5b4fc;" %></p>
+          <% end %>
+          <% if @credit_person.allmusic_url.present? %>
+            <p><%= link_to "AllMusic", @credit_person.allmusic_url, target: "_blank", rel: "noopener", style: "color: #a5b4fc;" %></p>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<div class="detail-tabs-card artist-tabs-card" data-controller="tabs">
+  <div class="tabs-header">
+    <button class="tab-link active" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="media">
+      Other Media
+    </button>
+    <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="roles">
+      Roles
+    </button>
+  </div>
+
+  <div class="tab-panel" data-tabs-target="panel" data-tab-id="media">
+    <% if @credits_by_media.any? %>
+      <div class="catalog-grid grid-simple">
+        <% @credits_by_media.each do |medium, credits| %>
+          <div class="media-card">
+            <div class="media-card-content">
+              <div class="media-card-header">
+                <h2 class="media-title"><%= link_to medium.album&.title || medium.title, media_path(medium), style: "color: inherit; text-decoration: none;" %></h2>
+                <p class="media-artist"><%= medium.artist.name %> • <%= medium.media_type.name %></p>
+              </div>
+              <div style="margin-top: 1rem; color: var(--text-muted); font-size: 0.85rem;">
+                <%= credits.map(&:role).uniq.join(", ") %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p style="color: var(--text-muted); padding: 2rem 0; text-align: center;">No credited media found for this person yet.</p>
+    <% end %>
+  </div>
+
+  <div class="tab-panel" data-tabs-target="panel" data-tab-id="roles" style="display: none;">
+    <% if @credits_by_category.any? %>
+      <div class="participants-list">
+        <% @credits_by_category.each do |category, credits| %>
+          <div class="participant-row">
+            <strong><%= category.humanize %></strong>
+            <span><%= credits.map(&:role).uniq.sort.join(", ") %></span>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p style="color: var(--text-muted); padding: 2rem 0; text-align: center;">No roles found for this person yet.</p>
+    <% end %>
+  </div>
+</div>

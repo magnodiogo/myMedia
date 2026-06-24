@@ -8,9 +8,9 @@ class MediaController < ApplicationController
   def index
     @query = params[:search]
     if @query.present?
-      @media = current_user.media.includes(:media_type, :artist).left_outer_joins(:artist).where("media.title ILIKE ? OR artists.name ILIKE ?", "%#{@query}%", "%#{@query}%").order(created_at: :desc)
+      @media = current_user.media.includes(:album, :media_type, :artist).left_outer_joins(:artist).where("media.title ILIKE ? OR artists.name ILIKE ?", "%#{@query}%", "%#{@query}%").order(created_at: :desc)
     else
-      @media = current_user.media.includes(:media_type, :artist).order(created_at: :desc)
+      @media = current_user.media.includes(:album, :media_type, :artist).order(created_at: :desc)
     end
   end
 
@@ -32,7 +32,8 @@ class MediaController < ApplicationController
 
 
   def show
-    @media = Media.includes(tracks: :track_credits).friendly.find(params[:id])
+    @media = Media.includes(:album, :media_genres, :media_styles, :recording_locations, album_credits: :credit_person, tracks: :track_credits).friendly.find(params[:id])
+    @album_credits_by_category = @media.album_credits.includes(:credit_person).order(:person_name, :role).group_by(&:credit_category)
     @user_media = current_user.user_media.find_or_initialize_by(media: @media) if current_user
   end
 
@@ -185,6 +186,6 @@ class MediaController < ApplicationController
   end
 
   def media_params
-    params.require(:media).permit(:media_type_id, :title, :artist, :release_year, :catalog_number, :barcode, :notes, :cover_image, :cover_url)
+    params.require(:media).permit(:media_type_id, :title, :artist, :release_year, :catalog_number, :barcode, :allmusic_url, :notes, :cover_image, :cover_url)
   end
 end

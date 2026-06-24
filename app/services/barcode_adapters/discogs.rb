@@ -5,7 +5,7 @@ module BarcodeAdapters
       url = "https://api.discogs.com/database/search?barcode=#{barcode}&type=release"
       headers = {
         "Authorization" => "Discogs Token #{token}",
-        "User-Agent" => "ColecaoCDs/1.0"
+        "User-Agent" => "myMedia/1.0"
       }
       data = fetch_json(url, headers)
       return nil unless data && data["results"] && data["results"].any?

@@ -17,7 +17,7 @@
       ⚡ Quick Barcode Fill
     </h3>
     <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; margin-top: 0.25rem;">
-      Enter a barcode (UPC/EAN) to search online databases (iTunes & MusicBrainz) and autofill the form.
+      Enter a barcode (UPC/EAN) to search online databases and autofill album and edition details.
     </p>
     <div style="display: flex; gap: 0.75rem;">
       <input type="text" data-barcode-lookup-target="query" placeholder="e.g., 077774600121" class="form-control" style="flex: 1;" value="<%= media.barcode %>">
@@ -29,12 +29,12 @@
   </div>
 
   <div class="form-group">
-    <%= form.label :media_type_id, "Format / Media Type", class: "form-label" %>
+    <%= form.label :media_type_id, "Physical Format", class: "form-label" %>
     <%= form.collection_select :media_type_id, MediaType.all, :id, :name, { prompt: "Select a format..." }, { class: "form-control" } %>
   </div>
 
   <div class="form-group">
-    <%= form.label :cover_image, "Cover Image", class: "form-label" %>
+    <%= form.label :cover_image, "Cover Art", class: "form-label" %>
     <%= form.file_field :cover_image, class: "form-control" %>
     
     <div class="cover-preview-box">
@@ -52,7 +52,7 @@
   </div>
 
   <div class="form-group">
-    <%= form.label :title, class: "form-label" %>
+    <%= form.label :title, "Album Title", class: "form-label" %>
     <%= form.text_field :title, class: "form-control", placeholder: "e.g., The Dark Side of the Moon", data: { cover_search_target: "title", barcode_lookup_target: "title" } %>
   </div>
 
@@ -67,7 +67,7 @@
   </div>
 
   <div class="form-group">
-    <%= form.label :release_year, "Release Year", class: "form-label" %>
+    <%= form.label :release_year, "Edition Release Year", class: "form-label" %>
     <%= form.number_field :release_year, class: "form-control", placeholder: "e.g., 1973", data: { barcode_lookup_target: "year" } %>
   </div>
 
@@ -82,8 +82,13 @@
   </div>
 
   <div class="form-group">
-    <%= form.label :notes, class: "form-label" %>
-    <%= form.text_area :notes, rows: 4, class: "form-control", placeholder: "Add details about this specific pressing, condition, shelf location..." %>
+    <%= form.label :allmusic_url, "AllMusic Album URL", class: "form-label" %>
+    <%= form.url_field :allmusic_url, class: "form-control", placeholder: "https://www.allmusic.com/album/i-still-do-mw0002922480" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :notes, "Edition Notes", class: "form-label" %>
+    <%= form.text_area :notes, rows: 4, class: "form-control", placeholder: "Add details about this pressing, remaster, packaging, or source..." %>
   </div>
 
   <div class="form-actions">
@@ -96,7 +101,7 @@
     <div class="submit-modal-content">
       <div class="submit-modal-header">
         <div class="spinner"></div>
-        <h3>Processing Media</h3>
+        <h3>Processing Physical Media</h3>
       </div>
       <ul class="submit-steps-list">
         <li data-submit-status-target="validationStep" class="step-pending">

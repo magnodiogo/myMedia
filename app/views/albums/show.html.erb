@@ -1,0 +1,244 @@
+<div class="media-detail-container" data-controller="lyrics-modal">
+  <% cover_record = @album.cover_image.attached? ? @album : @canonical_media %>
+  <% if cover_record&.cover_image&.attached? %>
+    <div class="media-detail-backdrop" style="background-image: url('<%= rails_blob_path(cover_record.cover_image) %>');"></div>
+  <% end %>
+
+  <div class="media-detail-content-wrapper">
+    <div class="page-header media-detail-header">
+      <div>
+        <span class="media-badge detail-badge"><%= @album.album_type.humanize %></span>
+        <h1 class="page-title detail-title"><%= @album.title %></h1>
+        <p class="page-subtitle detail-subtitle">by <%= link_to @album.artist.name, artist_path(@album.artist), style: "color: #a5b4fc; text-decoration: none;" %></p>
+      </div>
+      <div class="media-detail-actions">
+        <% if current_user&.admin? %>
+          <%= button_to "Load Album Data", load_metadata_album_path(@album), method: :post, class: "btn btn-primary" %>
+        <% end %>
+        <a href="<%= artist_path(@album.artist) %>" class="btn btn-secondary">Back to Artist</a>
+      </div>
+    </div>
+
+    <div class="spec-card-premium">
+      <div class="spec-card-cover-side">
+        <% if cover_record&.cover_image&.attached? %>
+          <div class="detail-cover-wrapper">
+            <%= image_tag cover_record.cover_image, class: "detail-cover" %>
+          </div>
+        <% else %>
+          <div class="detail-cover-placeholder">
+            <span class="placeholder-icon">🎵</span>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="spec-card-info-side">
+        <div class="spec-header">
+          <h2>Album Profile</h2>
+        </div>
+
+        <div class="spec-grid">
+          <div class="spec-item">
+            <span class="spec-label">Artist</span>
+            <span class="spec-value"><%= @album.artist.name %></span>
+          </div>
+
+          <div class="spec-item">
+            <span class="spec-label">Album Type</span>
+            <span class="spec-value highlight-value"><%= @album.album_type.humanize %></span>
+          </div>
+
+          <div class="spec-item">
+            <span class="spec-label">Release Year</span>
+            <span class="spec-value"><%= @album.release_year.presence || "Unknown" %></span>
+          </div>
+
+          <div class="spec-item">
+            <span class="spec-label">Original Release Date</span>
+            <span class="spec-value"><%= @album.original_release_date&.to_fs(:long) || "Unknown" %></span>
+          </div>
+
+          <div class="spec-item">
+            <span class="spec-label">Metadata Status</span>
+            <span class="spec-value"><%= @album.metadata_status.humanize %></span>
+          </div>
+
+          <div class="spec-item">
+            <span class="spec-label">Physical Editions</span>
+            <span class="spec-value"><%= @album.media.size %></span>
+          </div>
+        </div>
+
+        <% if @album.musicbrainz_release_group_id.present? || @album.wikidata_id.present? || @album.wikipedia_url.present? %>
+          <div class="spec-notes">
+            <h3>Metadata Sources</h3>
+            <div class="collector-notes-content">
+              <% if @album.musicbrainz_release_group_id.present? %>
+                <p>MusicBrainz Release Group: <span class="code-value"><%= @album.musicbrainz_release_group_id %></span></p>
+              <% end %>
+              <% if @album.wikidata_id.present? %>
+                <p>Wikidata: <span class="code-value"><%= @album.wikidata_id %></span></p>
+              <% end %>
+              <% if @album.wikipedia_url.present? %>
+                <p><%= link_to "Wikipedia", @album.wikipedia_url, target: "_blank", rel: "noopener", style: "color: #a5b4fc;" %></p>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="detail-tabs-card" data-controller="tabs">
+      <div class="tabs-header">
+        <button class="tab-link active" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="tracks">Tracks</button>
+        <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="info">Info</button>
+        <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="curiosities">Curiosities</button>
+        <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="participants">Participants</button>
+        <% if current_user %>
+          <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="collection">My Collection</button>
+        <% end %>
+      </div>
+
+      <div class="tab-panel" data-tabs-target="panel" data-tab-id="tracks">
+        <% if @tracks.any? %>
+          <div class="track-table-container">
+            <div class="track-table" style="display: table; width: 100%;">
+              <div class="track-table-header" style="display: table-row; font-weight: bold; border-bottom: 1px solid var(--panel-border);">
+                <div style="display: table-cell; padding: 0.75rem 1rem; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;">No.</div>
+                <div style="display: table-cell; padding: 0.75rem 1rem; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;">Track Title</div>
+                <div style="display: table-cell; padding: 0.75rem 1rem; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; text-align: right;">Duration</div>
+                <div style="display: table-cell; padding: 0.75rem 1rem; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; text-align: right;">Lyrics</div>
+              </div>
+
+              <div style="display: table-row-group;">
+                <% @tracks.each do |track| %>
+                  <div class="track-row" style="display: table-row;">
+                    <div style="display: table-cell; vertical-align: middle; padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.03);"><%= track.position.presence || track.track_number %></div>
+                    <div style="display: table-cell; vertical-align: middle; padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.03);">
+                      <div><%= track.title %></div>
+                      <% composer_credits = track.track_credits.select { |credit| AlbumCredit.category_for_role(credit.function) == "composer" } %>
+                      <% if composer_credits.any? %>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+                          <%= composer_credits.map { |credit| "#{credit.function}: #{credit.name}" }.join(", ") %>
+                        </div>
+                      <% end %>
+                    </div>
+                    <div style="display: table-cell; vertical-align: middle; padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.03); text-align: right;"><%= track.duration.presence || "--:--" %></div>
+                    <div style="display: table-cell; vertical-align: middle; padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.03); text-align: right;">
+                      <% if current_user&.admin? && track.media.present? %>
+                        <a href="#" class="btn btn-secondary btn-sm" data-action="click->lyrics-modal#open" data-url="<%= edit_lyrics_media_track_path(track.media, track) %>" data-track-title="<%= track.title %>">Lyrics</a>
+                      <% elsif track.lyrics.present? %>
+                        <% lyrics_url = track.media.present? ? show_lyrics_media_track_path(track.media, track) : show_lyrics_album_track_path(@album, track) %>
+                        <a href="#" class="btn btn-secondary btn-sm" data-action="click->lyrics-modal#open" data-url="<%= lyrics_url %>" data-track-title="<%= track.title %>">Lyrics</a>
+                      <% else %>
+                        <span style="color: var(--text-muted); font-size: 0.85rem;">Not available</span>
+                      <% end %>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% else %>
+          <p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No tracklist available for this album yet.</p>
+        <% end %>
+      </div>
+
+      <div class="tab-panel" data-tabs-target="panel" data-tab-id="info" style="display: none;">
+        <% if @album.summary.present? %>
+          <div class="wiki-info-content" style="padding: 1.5rem; background: rgba(255, 255, 255, 0.01); border-radius: var(--border-radius); border: 1px solid var(--panel-border);">
+            <p style="margin: 0; color: var(--text-color); font-size: 1.05rem; line-height: 1.6;"><%= @album.summary %></p>
+          </div>
+        <% else %>
+          <p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No album information available yet.</p>
+        <% end %>
+      </div>
+
+      <div class="tab-panel" data-tabs-target="panel" data-tab-id="curiosities" style="display: none;">
+        <div class="album-fact-grid">
+          <div class="album-fact">
+            <span>Known Physical Editions</span>
+            <strong><%= @album.media.size %></strong>
+          </div>
+          <div class="album-fact">
+            <span>Tracks With Lyrics</span>
+            <strong><%= @tracks.count { |track| track.lyrics.present? } %></strong>
+          </div>
+          <div class="album-fact">
+            <span>Credited Participants</span>
+            <strong><%= @participant_credits.size %></strong>
+          </div>
+          <div class="album-fact">
+            <span>Primary Source</span>
+            <strong><%= @album.musicbrainz_release_group_id.present? ? "MusicBrainz" : "Local Catalog" %></strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-tabs-target="panel" data-tab-id="participants" style="display: none;">
+        <% if @participant_credits.any? %>
+          <div class="participants-list">
+            <% @participant_credits.each do |name, credits| %>
+              <div class="participant-row">
+                <strong><%= name %></strong>
+                <span><%= credits.map { |credit| credit.function }.uniq.join(", ") %></span>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No participant credits available for this album yet.</p>
+        <% end %>
+      </div>
+
+      <% if current_user %>
+        <div class="tab-panel" data-tabs-target="panel" data-tab-id="collection" style="display: none;">
+          <% if @user_media&.any? %>
+            <div class="catalog-grid grid-simple album-editions-grid">
+              <% @user_media.each do |user_medium| %>
+                <% medium = user_medium.media %>
+                <div class="media-card">
+                  <div class="media-card-cover-wrapper">
+                    <a href="<%= media_path(medium) %>" class="media-card-cover-link">
+                      <div class="media-card-cover-container <%= 'media-card-cover-placeholder' unless medium.cover_image.attached? %>">
+                        <% if medium.cover_image.attached? %>
+                          <%= image_tag medium.cover_image, class: "media-card-cover" %>
+                        <% else %>
+                          <span class="placeholder-icon">🎵</span>
+                        <% end %>
+                      </div>
+                    </a>
+                  </div>
+                  <div class="media-card-content">
+                    <div class="media-card-header">
+                      <h2 class="media-title"><%= link_to medium.title, media_path(medium), style: "color: inherit; text-decoration: none;" %></h2>
+                      <p class="media-artist"><%= medium.media_type.name %> • <%= medium.release_year || "Unknown year" %></p>
+                      <% if user_medium.condition.present? %>
+                        <p class="media-artist" style="font-size: 0.8rem;">Condition: <%= user_medium.condition %></p>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">This album is not in your collection yet.</p>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div id="lyrics-modal" class="modal-overlay" data-lyrics-modal-target="modal">
+    <div class="modal-content" style="max-width: 650px;">
+      <div class="modal-header">
+        <h2 data-lyrics-modal-target="title">Lyrics</h2>
+        <button type="button" class="modal-close-btn" data-action="click->lyrics-modal#close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <turbo-frame id="lyrics_frame" data-lyrics-modal-target="frame">
+          <p style="color: var(--text-muted); text-align: center; padding: 2rem 0;">Loading...</p>
+        </turbo-frame>
+      </div>
+    </div>
+  </div>
+</div>

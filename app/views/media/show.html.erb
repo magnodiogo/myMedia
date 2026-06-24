@@ -7,8 +7,11 @@
     <div class="page-header media-detail-header">
       <div>
         <span class="media-badge detail-badge"><%= @media.media_type.name %></span>
-        <h1 class="page-title detail-title"><%= @media.title %></h1>
+        <h1 class="page-title detail-title"><%= @media.album&.title || @media.title %></h1>
         <p class="page-subtitle detail-subtitle">by <%= link_to @media.artist.name, artist_path(@media.artist), style: "color: #a5b4fc; text-decoration: none;" %></p>
+        <% if @media.album && @media.title != @media.album.title %>
+          <p class="page-subtitle detail-subtitle">Edition: <%= @media.title %></p>
+        <% end %>
       </div>
       <div class="media-detail-actions">
         <% if current_user&.admin? %>
@@ -35,17 +38,27 @@
 
       <div class="spec-card-info-side">
         <div class="spec-header">
-          <h2>Technical Specifications</h2>
+          <h2>Physical Edition</h2>
         </div>
 
         <div class="spec-grid">
           <div class="spec-item">
-            <span class="spec-label">Format / Media Type</span>
+            <span class="spec-label">Album</span>
+            <span class="spec-value"><%= @media.album&.title || @media.title %></span>
+          </div>
+
+          <div class="spec-item">
+            <span class="spec-label">Artist</span>
+            <span class="spec-value"><%= @media.artist.name %></span>
+          </div>
+
+          <div class="spec-item">
+            <span class="spec-label">Physical Format</span>
             <span class="spec-value highlight-value"><%= @media.media_type.name %></span>
           </div>
 
           <div class="spec-item">
-            <span class="spec-label">Release Year</span>
+            <span class="spec-label">Edition Release Year</span>
             <span class="spec-value"><%= @media.release_year.presence || "Unknown" %></span>
           </div>
 
@@ -58,11 +71,31 @@
             <span class="spec-label">Barcode</span>
             <span class="spec-value code-value"><%= @media.barcode.presence || "N/A" %></span>
           </div>
+
+          <div class="spec-item">
+            <span class="spec-label">Duration</span>
+            <span class="spec-value"><%= @media.formatted_duration.presence || "Unknown" %></span>
+          </div>
+
+          <div class="spec-item">
+            <span class="spec-label">Genre</span>
+            <span class="spec-value"><%= @media.media_genres.map(&:name).join(", ").presence || "Unknown" %></span>
+          </div>
+
+          <div class="spec-item">
+            <span class="spec-label">Styles</span>
+            <span class="spec-value"><%= @media.media_styles.map(&:name).join(", ").presence || "Unknown" %></span>
+          </div>
+
+          <div class="spec-item">
+            <span class="spec-label">Recording Location</span>
+            <span class="spec-value"><%= @media.recording_locations.map(&:name).join(", ").presence || "Unknown" %></span>
+          </div>
         </div>
 
         <% if @media.notes.present? %>
           <div class="spec-notes">
-            <h3>Collector Notes</h3>
+            <h3>Edition Notes</h3>
             <div class="collector-notes-content">
               <span class="notes-quote-mark">"</span>
               <p><%= @media.notes %></p>
@@ -79,7 +112,10 @@
           🎵 Tracks
         </button>
         <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="info">
-          ℹ️ Info
+          ℹ️ Album Info
+        </button>
+        <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="credits">
+          Credits
         </button>
         <% if current_user %>
           <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="collection">
@@ -87,7 +123,7 @@
           </button>
         <% end %>
         <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="notes">
-          📝 Collector Notes
+          📝 Edition Notes
         </button>
       </div>
 
@@ -118,12 +154,41 @@
 
       <!-- Info Panel -->
       <div class="tab-panel" data-tabs-target="panel" data-tab-id="info" style="display: none;">
-        <% if @media.info.present? %>
+        <% album_info = @media.album&.summary.presence || @media.info.presence %>
+        <% if album_info.present? %>
           <div class="wiki-info-content" style="padding: 1.5rem; background: rgba(255, 255, 255, 0.01); border-radius: var(--border-radius); border: 1px solid var(--panel-border);">
-            <p style="margin: 0; color: var(--text-color); font-size: 1.05rem; line-height: 1.6;"><%= @media.info %></p>
+            <p style="margin: 0; color: var(--text-color); font-size: 1.05rem; line-height: 1.6;"><%= album_info %></p>
           </div>
         <% else %>
-          <p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No Wikipedia info available for this media.</p>
+          <p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No album information available yet.</p>
+        <% end %>
+      </div>
+
+      <div class="tab-panel" data-tabs-target="panel" data-tab-id="credits" style="display: none;">
+        <% if @media.album_credits.any? %>
+          <% [
+            ["Musicians", @album_credits_by_category["musician"]],
+            ["Production & Artwork", @album_credits_by_category["technical"]]
+          ].each do |title, credits| %>
+            <% next if credits.blank? %>
+            <div class="participants-list" style="margin-bottom: 1.5rem;">
+              <h3 style="margin: 0 0 1rem; color: var(--text-main);"><%= title %></h3>
+              <% credits.group_by { |credit| credit.credit_person || credit.person_name }.each do |person, person_credits| %>
+                <div class="participant-row">
+                  <strong>
+                    <% if person.respond_to?(:id) %>
+                      <%= link_to person.name, credit_person_path(person), style: "color: inherit; text-decoration: none;" %>
+                    <% else %>
+                      <%= person %>
+                    <% end %>
+                  </strong>
+                  <span><%= person_credits.map(&:role).uniq.join(", ") %></span>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        <% else %>
+          <p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No album credits imported yet.</p>
         <% end %>
       </div>
 
@@ -207,13 +272,13 @@
             <p style="margin: 0; color: var(--text-color); font-size: 1.05rem; line-height: 1.6; font-style: italic;"><%= @media.notes %></p>
           </div>
         <% else %>
-          <p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No collector notes registered for this media.</p>
+          <p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No edition notes registered for this physical media.</p>
         <% end %>
       </div>
     </div>
   </div>
 
-  <!-- Lyrics Modal — fora de qualquer container com overflow:hidden para position:fixed funcionar -->
+  <!-- Keep the lyrics modal outside containers with overflow hidden so fixed positioning works. -->
   <div id="lyrics-modal" class="modal-overlay" data-lyrics-modal-target="modal">
     <div class="modal-content" style="max-width: 650px;">
       <div class="modal-header">

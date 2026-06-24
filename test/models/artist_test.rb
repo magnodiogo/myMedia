@@ -17,6 +17,67 @@ class ArtistTest < ActiveSupport::TestCase
     end
   end
 
+  test "should load discography from musicbrainz release groups" do
+    artist = Artist.create!(name: "Discography Test Artist")
+
+    artist.define_singleton_method(:fetch_musicbrainz_artist) do
+      { "id" => "artist-mbid", "name" => name }
+    end
+
+    artist.define_singleton_method(:fetch_musicbrainz_release_groups) do |_musicbrainz_artist_id|
+      [
+        {
+          "id" => "album-mbid",
+          "title" => "Imported Studio Album",
+          "primary-type" => "Album",
+          "secondary-types" => [],
+          "first-release-date" => "1975-09-12"
+        },
+        {
+          "id" => "live-mbid",
+          "title" => "Imported Live Album",
+          "primary-type" => "Album",
+          "secondary-types" => ["Live"],
+          "first-release-date" => "1977"
+        }
+      ]
+    end
+
+    artist.define_singleton_method(:cover_art_archive_url) { |_musicbrainz_release_group_id| nil }
+
+    assert_difference("Album.count", 2) do
+      result = artist.load_discography
+
+      assert_equal 2, result[:imported]
+      assert_equal 0, result[:updated]
+      assert_equal 0, result[:skipped]
+      assert_nil result[:error]
+    end
+
+    studio_album = artist.albums.find_by!(musicbrainz_release_group_id: "album-mbid")
+    live_album = artist.albums.find_by!(musicbrainz_release_group_id: "live-mbid")
+
+    assert_equal "Imported Studio Album", studio_album.title
+    assert_equal "studio", studio_album.album_type
+    assert_equal "imported", studio_album.metadata_status
+    assert_equal 1975, studio_album.release_year
+    assert_equal Date.new(1975, 9, 12), studio_album.original_release_date
+
+    assert_equal "live", live_album.album_type
+    assert_equal 1977, live_album.release_year
+    assert_nil live_album.original_release_date
+  end
+
+  test "should report error when discography artist is not found" do
+    artist = Artist.create!(name: "Unknown Discography Artist")
+    artist.define_singleton_method(:fetch_musicbrainz_artist) { nil }
+
+    result = artist.load_discography
+
+    assert_equal 0, result[:imported]
+    assert_equal "Artist not found on MusicBrainz.", result[:error]
+  end
+
   test "should update bio from wikipedia" do
     artist = Artist.create!(name: "Pink Floyd")
     

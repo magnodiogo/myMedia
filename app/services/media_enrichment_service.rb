@@ -58,7 +58,7 @@ class MediaEnrichmentService
     def headers
       {
         "Authorization" => "Discogs Token #{@token}",
-        "User-Agent" => "ColecaoCDs/1.0"
+        "User-Agent" => "myMedia/1.0"
       }
     end
   end
@@ -109,7 +109,7 @@ class MediaEnrichmentService
 
     def headers
       {
-        "User-Agent" => "ColecaoCDs/1.0 (seu-email@exemplo.com)"
+        "User-Agent" => "myMedia/1.0"
       }
     end
   end
@@ -117,7 +117,7 @@ class MediaEnrichmentService
   class WikidataClient
     def entity(qid)
       uri = URI("https://www.wikidata.org/wiki/Special:EntityData/#{qid}.json")
-      HttpClient.get_json(uri, { "User-Agent" => "ColecaoCDs/1.0" })
+      HttpClient.get_json(uri, { "User-Agent" => "myMedia/1.0" })
     rescue => e
       Rails.logger.error "Wikidata Error: #{e.message}"
       nil
@@ -165,7 +165,7 @@ class MediaEnrichmentService
     private
 
     def headers
-      { "User-Agent" => "ColecaoCDs/1.0" }
+      { "User-Agent" => "myMedia/1.0" }
     end
   end
 
@@ -204,12 +204,12 @@ class MediaEnrichmentService
       return if discogs_result.nil? || discogs_result["results"].nil? || discogs_result["results"].empty?
 
       item = discogs_result["results"].first
-      detalhes = discogs.release(item["id"])
+      details = discogs.release(item["id"])
 
-      artist_name = clean_artist_name(detalhes["artists"]&.first&.dig("name"))
-      album_title = clean_album_title(detalhes["title"])
+      artist_name = clean_artist_name(details["artists"]&.first&.dig("name"))
+      album_title = clean_album_title(details["title"])
 
-      artist_id = detalhes["artists"]&.first&.dig("id")
+      artist_id = details["artists"]&.first&.dig("id")
       artist_photo_url = nil
       if artist_id
         artist_details = discogs.artist(artist_id)
@@ -272,9 +272,9 @@ class MediaEnrichmentService
 
         # Set/update attributes
         media.title = album_title if media.title.blank?
-        media.release_year = detalhes["year"] if media.release_year.blank?
-        media.catalog_number = detalhes["labels"]&.first&.dig("catno") if media.catalog_number.blank?
-        media.cover_url = detalhes["images"]&.first&.dig("uri") if media.cover_image.blank? && detalhes["images"]&.any?
+        media.release_year = details["year"] if media.release_year.blank?
+        media.catalog_number = details["labels"]&.first&.dig("catno") if media.catalog_number.blank?
+        media.cover_url = details["images"]&.first&.dig("uri") if media.cover_image.blank? && details["images"]&.any?
 
         if album_wiki && album_wiki[:data] && album_wiki[:data]["extract"]
           media.info = album_wiki[:data]["extract"]
@@ -294,10 +294,10 @@ class MediaEnrichmentService
         media.save!
 
         # Recreate tracks
-        if detalhes["tracklist"]&.any?
+        if details["tracklist"]&.any?
           media.tracks.destroy_all
 
-          tracks_to_save = detalhes["tracklist"].select { |t| t["type_"].nil? || t["type_"] == "track" || t["type_"].empty? }
+          tracks_to_save = details["tracklist"].select { |t| t["type_"].nil? || t["type_"] == "track" || t["type_"].empty? }
           tracks_to_save.each_with_index do |track_data, index|
             track_number = index + 1
             duration = track_data["duration"].to_s.strip

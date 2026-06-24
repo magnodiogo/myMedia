@@ -1,10 +1,10 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">Dashboard</h1>
-    <p class="page-subtitle">Overview of your media collection</p>
+    <p class="page-subtitle">Overview of your physical media collection</p>
   </div>
   <% if current_user&.admin? %>
-    <a href="<%= new_media_path %>" class="btn btn-primary">+ Add Media</a>
+    <a href="<%= new_media_path %>" class="btn btn-primary">+ Add Physical Media</a>
   <% end %>
 </div>
 
@@ -12,14 +12,14 @@
   <div class="stat-card">
     <div class="stat-icon-bg">💿</div>
     <div class="stat-info">
-      <div class="stat-label">Total Media</div>
+      <div class="stat-label">Physical Media</div>
       <div class="stat-value"><%= @total_media %></div>
     </div>
   </div>
   <div class="stat-card">
     <div class="stat-icon-bg">🏷️</div>
     <div class="stat-info">
-      <div class="stat-label">Media Types</div>
+      <div class="stat-label">Physical Formats</div>
       <div class="stat-value"><%= @total_types %></div>
     </div>
   </div>
@@ -55,7 +55,7 @@
                 <% end %>
 
                 <div class="dashboard-item-info">
-                  <span class="dashboard-item-title"><%= media.title %></span>
+                  <span class="dashboard-item-title"><%= media.album&.title || media.title %></span>
                   <span class="dashboard-item-subtitle"><%= media.artist&.name %> • <%= media.release_year %></span>
                 </div>
               </div>
@@ -68,9 +68,9 @@
         </div>
       <% else %>
         <% if current_user&.admin? %>
-          <p style="color: var(--text-muted);">No media items added yet. Click "+ Add Media" to start your collection!</p>
+          <p style="color: var(--text-muted);">No physical media added yet. Click "+ Add Physical Media" to start your collection!</p>
         <% else %>
-          <p style="color: var(--text-muted);">No media items added yet. Go to the Media catalog to search and add items!</p>
+          <p style="color: var(--text-muted);">No physical media added yet. Go to the media catalog to search and add editions.</p>
         <% end %>
       <% end %>
     </div>

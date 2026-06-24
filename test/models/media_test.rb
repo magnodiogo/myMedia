@@ -28,6 +28,22 @@ class MediaTest < ActiveSupport::TestCase
     assert_equal "Santana's album Supernatural info text", media.info
   end
 
+  test "should assign album from media attributes" do
+    media = Media.create!(
+      media_type: @media_type,
+      title: "Wish You Were Here",
+      artist: "Pink Floyd",
+      release_year: 1975,
+      info: "Album summary"
+    )
+
+    assert media.album.present?
+    assert_equal "Wish You Were Here", media.album.title
+    assert_equal "Pink Floyd", media.album.artist.name
+    assert_equal 1975, media.album.release_year
+    assert_equal "Album summary", media.album.summary
+  end
+
   test "should be invalid without a title" do
     media = Media.new(media_type: @media_type, artist: "Pink Floyd")
     assert_not media.valid?
@@ -109,6 +125,19 @@ class MediaTest < ActiveSupport::TestCase
     URI.stub :open, ->(*_a) { File.open(Rails.root.join('db/seeds/images/dark_side_cover.png')) } do
       media.update!(cover_url: "https://example.com/brothers_in_arms.jpg")
       assert media.cover_image.attached?
+    end
+  end
+
+  test "should destroy album credits when media is destroyed" do
+    media = Media.create!(
+      media_type: @media_type,
+      title: "I Still Do",
+      artist: "Eric Clapton"
+    )
+    media.album_credits.create!(person_name: "Glyn Johns", role: "Producer", source: "allmusic")
+
+    assert_difference("AlbumCredit.count", -1) do
+      media.destroy
     end
   end
 end

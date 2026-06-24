@@ -4,7 +4,7 @@
     <h1 class="mobile-page-title">Dashboard</h1>
   </div>
   <% if current_user&.admin? %>
-    <a href="<%= new_media_path %>" class="btn-circular-add" title="Add Media">+</a>
+    <a href="<%= new_media_path %>" class="btn-circular-add" title="Add Physical Media">+</a>
   <% end %>
 </div>
 
@@ -13,7 +13,7 @@
     <span class="pill-emoji">💿</span>
     <div class="pill-data">
       <span class="pill-value"><%= @total_media %></span>
-      <span class="pill-label">Media</span>
+      <span class="pill-label">Physical Media</span>
     </div>
   </div>
   <div class="mobile-stat-pill">
@@ -48,7 +48,7 @@
             <div class="mobile-item-img-placeholder">💿</div>
           <% end %>
           <div class="mobile-item-details">
-            <span class="mobile-item-title"><%= media.title %></span>
+            <span class="mobile-item-title"><%= media.album&.title || media.title %></span>
             <span class="mobile-item-desc"><%= media.artist&.name %> • <%= media.release_year %></span>
           </div>
           <span class="mobile-chevron">
@@ -61,7 +61,7 @@
     </div>
   <% else %>
     <div class="mobile-empty-state">
-      <p>No media added yet.</p>
+      <p>No physical media added yet.</p>
     </div>
   <% end %>
 </div>

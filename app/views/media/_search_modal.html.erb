@@ -1,7 +1,7 @@
 <div id="search-modal" class="modal-overlay" data-catalog-actions-target="searchModal">
   <div class="modal-content">
     <div class="modal-header">
-      <h2>🔍 Search and Import Media</h2>
+      <h2>🔍 Search and Import Physical Media</h2>
       <button type="button" class="modal-close-btn" data-action="click->catalog-actions#closeSearchModal">&times;</button>
     </div>
     
@@ -9,7 +9,7 @@
       <!-- Search inputs -->
       <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
         <div class="form-group" style="margin-bottom: 0;">
-          <label class="form-label" style="font-weight: 600;">Title / Album</label>
+          <label class="form-label" style="font-weight: 600;">Album Title</label>
           <input type="text" data-catalog-actions-target="searchTitle" placeholder="e.g., Rumours or Thriller" class="form-control">
         </div>
         <div class="form-group" style="margin-bottom: 0;">
@@ -23,7 +23,7 @@
         </div>
         <% if current_user&.admin? %>
           <div class="form-group" style="margin-bottom: 0;">
-            <label class="form-label" style="font-weight: 600;">Default Format for Import</label>
+            <label class="form-label" style="font-weight: 600;">Default Physical Format for Import</label>
             <select data-catalog-actions-target="searchFormatId" class="form-control">
               <% MediaType.all.each do |mt| %>
                 <option value="<%= mt.id %>"><%= mt.name %></option>

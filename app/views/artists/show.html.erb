@@ -1,10 +1,11 @@
 <div class="page-header" style="margin-bottom: 2rem;">
   <div>
     <h1 class="page-title"><%= @artist.name %></h1>
-    <p class="page-subtitle">Artist overview and media catalog</p>
+    <p class="page-subtitle">Artist overview, albums, and physical media</p>
   </div>
   <div style="display: flex; gap: 0.5rem;">
     <% if current_user&.admin? %>
+      <%= button_to "Load Discography", load_discography_artist_path(@artist), method: :post, class: "btn btn-primary" %>
       <a href="<%= edit_artist_path(@artist) %>" class="btn btn-secondary">Edit Artist</a>
     <% end %>
     <a href="<%= artists_path %>" class="btn btn-secondary">Back</a>
@@ -28,57 +29,137 @@
     <div class="spec-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
       <h2 style="font-size: 1.6rem; color: #a5b4fc; margin: 0;"><%= @artist.name %></h2>
       <div style="background-color: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #a5b4fc; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
-        💿 <%= pluralize(@media.count, "item") %> in catalog
+        💿 <%= pluralize(@albums.count, "album") %> / <%= pluralize(@media.count, "edition") %>
       </div>
     </div>
     
-    <div style="margin-top: 1.5rem;">
+    <div class="artist-biography" data-controller="read-more" data-read-more-collapsed-label-value="More" data-read-more-expanded-label-value="Less" style="margin-top: 1.5rem;">
       <h3 style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">Biography</h3>
-      <p style="color: var(--text-main); line-height: 1.6; font-size: 0.95rem; white-space: pre-wrap; margin: 0;"><%= @artist.bio.presence || "No biography provided for this artist." %></p>
+      <div class="read-more-content biography-content <%= 'is-collapsible' if @artist.bio.present? && @artist.bio.length > 320 %>" data-read-more-target="content">
+        <p style="color: var(--text-main); line-height: 1.6; font-size: 0.95rem; white-space: pre-wrap; margin: 0;"><%= @artist.bio.presence || "No biography provided for this artist." %></p>
+      </div>
+      <% if @artist.bio.present? && @artist.bio.length > 320 %>
+        <button type="button" class="read-more-toggle" data-read-more-target="button" data-action="click->read-more#toggle">More</button>
+      <% end %>
     </div>
   </div>
 </div>
 
-<div class="section-box">
-  <h3 style="border-bottom: 1px solid var(--panel-border); padding-bottom: 0.75rem; margin-bottom: 1.5rem; font-size: 1.25rem;">Items by this Artist</h3>
-  
-  <% if @media.any? %>
-    <div class="catalog-grid grid-simple">
-      <% @media.each do |item| %>
-        <div class="media-card">
-          <div class="media-card-cover-wrapper">
-            <% if item.cover_image.attached? %>
-              <a href="<%= media_path(item) %>" class="media-card-cover-link">
-                <div class="media-card-cover-container">
-                  <%= image_tag item.cover_image, class: "media-card-cover" %>
-                </div>
-              </a>
-            <% else %>
-              <a href="<%= media_path(item) %>" class="media-card-cover-link">
-                <div class="media-card-cover-container media-card-cover-placeholder">
-                  <span class="placeholder-icon">🎵</span>
-                </div>
-              </a>
-            <% end %>
-            <% if current_user&.admin? %>
-              <a href="<%= edit_media_path(item) %>" class="media-card-edit-overlay" title="Edit Media">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="edit-icon-svg">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-                </svg>
-              </a>
-            <% end %>
+<div class="detail-tabs-card artist-tabs-card" data-controller="tabs">
+  <div class="tabs-header">
+    <button class="tab-link active" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="discography">
+      Discography
+    </button>
+    <% if current_user %>
+      <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="collection">
+        My Collection
+      </button>
+    <% end %>
+  </div>
+
+  <div class="tab-panel" data-tabs-target="panel" data-tab-id="discography">
+    <% if @albums_by_type.any? %>
+      <% Album.album_types.keys.each do |album_type| %>
+        <% albums = Array(@albums_by_type[album_type]) %>
+        <% next if albums.empty? %>
+
+        <section class="discography-group" data-controller="read-more" data-read-more-collapsed-label-value="More <%= album_type.humanize %>" data-read-more-expanded-label-value="Less <%= album_type.humanize %>">
+          <div class="discography-group-header">
+            <h3><%= album_type.humanize %></h3>
+            <span><%= pluralize(albums.size, "album") %></span>
           </div>
 
-          <div class="media-card-content">
-            <div class="media-card-header">
-              <h2 class="media-title"><%= link_to item.title, media_path(item), style: "color: inherit; text-decoration: none;" %></h2>
-              <p class="media-artist"><%= item.media_type.name %> • <%= item.release_year %></p>
+          <div class="read-more-content discography-content <%= 'is-collapsible' if albums.size > 6 %>" data-read-more-target="content">
+            <div class="catalog-grid grid-simple artist-discography-grid">
+              <% albums.each do |album| %>
+                <div class="media-card">
+                  <div class="media-card-cover-wrapper">
+                    <a href="<%= album_path(album) %>" class="media-card-cover-link">
+                      <div class="media-card-cover-container <%= 'media-card-cover-placeholder' unless album.cover_image.attached? %>">
+                        <% if album.cover_image.attached? %>
+                          <%= image_tag album.cover_image, class: "media-card-cover" %>
+                        <% else %>
+                          <span class="placeholder-icon">🎵</span>
+                        <% end %>
+                      </div>
+                    </a>
+                  </div>
+
+                  <div class="media-card-content">
+                    <div class="media-card-header">
+                      <span class="media-badge"><%= album.album_type.humanize %></span>
+                      <h2 class="media-title"><%= link_to album.title, album_path(album), style: "color: inherit; text-decoration: none;" %></h2>
+                      <p class="media-artist"><%= album.release_year || "Unknown year" %> • <%= album.metadata_status.humanize %></p>
+                      <% if album.media.any? %>
+                        <p class="media-artist" style="font-size: 0.8rem;"><%= pluralize(album.media.size, "physical edition") %> in catalog</p>
+                      <% else %>
+                        <p class="media-artist" style="font-size: 0.8rem;">No physical editions in catalog yet</p>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
             </div>
           </div>
+
+          <% if albums.size > 6 %>
+            <button type="button" class="read-more-toggle" data-read-more-target="button" data-action="click->read-more#toggle">More <%= album_type.humanize %></button>
+          <% end %>
+        </section>
+      <% end %>
+    <% else %>
+      <p style="color: var(--text-muted); padding: 2rem 0; text-align: center;">No discography loaded for this artist yet.</p>
+    <% end %>
+  </div>
+
+  <% if current_user %>
+    <div class="tab-panel" data-tabs-target="panel" data-tab-id="collection" style="display: none;">
+      <% if @collection_items&.any? %>
+        <div class="catalog-grid grid-simple artist-collection-grid">
+          <% @collection_items.each do |collection_item| %>
+            <% item = collection_item.media %>
+            <div class="media-card">
+              <div class="media-card-cover-wrapper">
+                <% if item.cover_image.attached? %>
+                  <a href="<%= media_path(item) %>" class="media-card-cover-link">
+                    <div class="media-card-cover-container">
+                      <%= image_tag item.cover_image, class: "media-card-cover" %>
+                    </div>
+                  </a>
+                <% else %>
+                  <a href="<%= media_path(item) %>" class="media-card-cover-link">
+                    <div class="media-card-cover-container media-card-cover-placeholder">
+                      <span class="placeholder-icon">🎵</span>
+                    </div>
+                  </a>
+                <% end %>
+                <% if current_user&.admin? %>
+                  <a href="<%= edit_media_path(item) %>" class="media-card-edit-overlay" title="Edit Physical Media">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="edit-icon-svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                    </svg>
+                  </a>
+                <% end %>
+              </div>
+
+              <div class="media-card-content">
+                <div class="media-card-header">
+                  <h2 class="media-title"><%= link_to item.album&.title || item.title, media_path(item), style: "color: inherit; text-decoration: none;" %></h2>
+                  <p class="media-artist"><%= item.media_type.name %> • <%= item.release_year || "Unknown year" %></p>
+                  <% if item.album && item.title != item.album.title %>
+                    <p class="media-artist" style="font-size: 0.8rem;">Edition: <%= item.title %></p>
+                  <% end %>
+                  <% if collection_item.condition.present? %>
+                    <p class="media-artist" style="font-size: 0.8rem;">Condition: <%= collection_item.condition %></p>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
         </div>
+      <% else %>
+        <p style="color: var(--text-muted); padding: 2rem 0; text-align: center;">No physical media by this artist in your collection yet.</p>
       <% end %>
     </div>
-  <% else %>
-    <p style="color: var(--text-muted); padding: 2rem 0; text-align: center;">No items in the catalog for this artist yet.</p>
   <% end %>
 </div>
