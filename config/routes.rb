@@ -17,6 +17,7 @@ Rails.application.routes.draw do
     member do
       post :load_metadata
       patch :update_allmusic_url
+      post :try_load_cover
     end
 
     resources :tracks, only: [], controller: "album_tracks" do

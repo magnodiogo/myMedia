@@ -1,4 +1,5 @@
 require "test_helper"
+require "minitest/mock"
 
 class AlbumsControllerTest < ActionDispatch::IntegrationTest
   include Devise::Test::IntegrationHelpers
@@ -188,5 +189,58 @@ class AlbumsControllerTest < ActionDispatch::IntegrationTest
     patch album_url(@album), params: { album: { title: "Hacked Title" } }
     assert_redirected_to root_path
     assert_not_equal "Hacked Title", @album.reload.title
+  end
+
+  test "admin should try load cover successfully" do
+    sign_in users(:two) # admin
+    
+    Album.class_eval do
+      alias_method :original_try_load_cover!, :try_load_cover!
+      def try_load_cover!
+        true
+      end
+    end
+    
+    begin
+      post try_load_cover_album_url(@album)
+    ensure
+      Album.class_eval do
+        alias_method :try_load_cover!, :original_try_load_cover!
+        remove_method :original_try_load_cover!
+      end
+    end
+    
+    assert_redirected_to album_url(@album)
+    assert_equal "Album cover loaded successfully.", flash[:notice]
+  end
+
+  test "admin try load cover handle failure" do
+    sign_in users(:two) # admin
+    
+    Album.class_eval do
+      alias_method :original_try_load_cover!, :try_load_cover!
+      def try_load_cover!
+        false
+      end
+    end
+    
+    begin
+      post try_load_cover_album_url(@album)
+    ensure
+      Album.class_eval do
+        alias_method :try_load_cover!, :original_try_load_cover!
+        remove_method :original_try_load_cover!
+      end
+    end
+    
+    assert_redirected_to album_url(@album)
+    assert_equal "Could not find a cover on the internet for this album.", flash[:alert]
+  end
+
+  test "common user should not try load cover" do
+    # common user is users(:one)
+    post try_load_cover_album_url(@album)
+    
+    assert_redirected_to root_path
   end
 end

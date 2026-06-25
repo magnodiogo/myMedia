@@ -1,39 +1,52 @@
-<div class="page-header" style="margin-bottom: 2rem;">
-  <div>
-    <h1 class="page-title"><%= @artist.name %></h1>
-    <p class="page-subtitle">Artist overview, albums, and physical media</p>
-  </div>
-  <div style="display: flex; gap: 0.5rem;">
-    <% if current_user&.admin? %>
-      <%= button_to "Load Discography", load_discography_artist_path(@artist), method: :post, class: "btn btn-primary" %>
-      <a href="<%= edit_artist_path(@artist) %>" class="btn btn-secondary">Edit Artist</a>
+<div style="position: relative; margin-bottom: 4.5rem;">
+  <div class="artist-banner-wrapper" style="position: relative; width: 100%; height: 340px; overflow: hidden; border-radius: var(--border-radius, 12px); border: 1px solid var(--panel-border); box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+    <% if @artist.banner.attached? %>
+      <!-- Blurred background layer (scales and blurs the same image) -->
+      <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url(<%= rails_blob_path(@artist.banner) %>); background-size: cover; background-position: center; filter: blur(20px) brightness(0.65); transform: scale(1.15); z-index: 1;"></div>
+      
+      <!-- Crisp foreground image centered perfectly -->
+      <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; z-index: 2;">
+        <%= image_tag @artist.banner, style: "max-width: 100%; max-height: 100%; object-fit: contain; display: block;" %>
+      </div>
+    <% else %>
+      <!-- Fallback elegant gradient -->
+      <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #1e1b4b 0%, #3b0764 50%, #030712 100%); z-index: 1;"></div>
     <% end %>
-    <a href="<%= artists_path %>" class="btn btn-secondary">Back</a>
+
+    <!-- Action buttons container (z-index 10 to stand above the layers) -->
+    <div style="position: absolute; bottom: 1rem; right: 1rem; display: flex; gap: 0.5rem; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(12px); padding: 0.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); z-index: 10;">
+      <% if current_user&.admin? %>
+        <%= button_to "Load Discography", load_discography_artist_path(@artist), method: :post, class: "btn btn-primary btn-sm", style: "margin: 0; padding: 0.4rem 0.8rem; font-size: 0.8rem;" %>
+        <a href="<%= edit_artist_path(@artist) %>" class="btn btn-secondary btn-sm" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Edit Artist</a>
+      <% end %>
+      <a href="<%= artists_path %>" class="btn btn-secondary btn-sm" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Back</a>
+    </div>
+  </div>
+
+  <div class="artist-avatar-wrapper" style="position: absolute; bottom: -50px; left: 30px; z-index: 15; width: 140px; height: 140px; border-radius: 50%; overflow: hidden; border: 4px solid #0f172a; box-shadow: 0 8px 24px rgba(0,0,0,0.4); background: var(--panel-bg);">
+    <% if @artist.photo.attached? %>
+      <%= image_tag @artist.photo, style: "width: 100%; height: 100%; object-fit: cover;" %>
+    <% else %>
+      <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(168, 85, 247, 0.2) 100%);">
+        <span style="font-size: 3rem; opacity: 0.6;">🎤</span>
+      </div>
+    <% end %>
   </div>
 </div>
 
-<div class="spec-card-premium" style="margin-bottom: 2.5rem;">
-  <div class="spec-card-cover-side" style="width: 200px;">
-    <% if @artist.photo.attached? %>
-      <div class="detail-cover-wrapper" style="border-radius: 50%; width: 200px; height: 200px; overflow: hidden; border: 2px solid var(--panel-border);">
-        <%= image_tag @artist.photo, class: "detail-cover", style: "width: 100%; height: 100%; object-fit: cover;" %>
+<div class="spec-card-premium" style="margin-bottom: 2.5rem; padding: 2.5rem; background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: var(--border-radius, 12px); backdrop-filter: blur(16px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);">
+  <div class="spec-card-info-side" style="width: 100%; margin: 0;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--panel-border); padding-bottom: 1.25rem; margin-bottom: 1.5rem;">
+      <div>
+        <h1 class="page-title" style="font-size: 2.2rem; color: #ffffff; margin: 0; font-weight: 800; letter-spacing: -0.5px;"><%= @artist.name %></h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem; margin-bottom: 0;">Artist overview, albums, and physical media</p>
       </div>
-    <% else %>
-      <div class="detail-cover-placeholder" style="border-radius: 50%; width: 200px; height: 200px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(168, 85, 247, 0.2) 100%);">
-        <span class="placeholder-icon" style="font-size: 4.5rem; opacity: 0.5;">🎤</span>
-      </div>
-    <% end %>
-  </div>
-
-  <div class="spec-card-info-side" style="margin-top: 0.5rem;">
-    <div class="spec-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-      <h2 style="font-size: 1.6rem; color: #a5b4fc; margin: 0;"><%= @artist.name %></h2>
-      <div style="background-color: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #a5b4fc; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+      <div style="background-color: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #a5b4fc; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center;">
         💿 <%= pluralize(@albums.count, "album") %> / <%= pluralize(@media.count, "edition") %>
       </div>
     </div>
     
-    <div class="artist-biography" data-controller="read-more" data-read-more-collapsed-label-value="More" data-read-more-expanded-label-value="Less" style="margin-top: 1.5rem;">
+    <div class="artist-biography" data-controller="read-more" data-read-more-collapsed-label-value="More" data-read-more-expanded-label-value="Less">
       <h3 style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">Biography</h3>
       <div class="read-more-content biography-content <%= 'is-collapsible' if @artist.bio.present? && @artist.bio.length > 320 %>" data-read-more-target="content">
         <p style="color: var(--text-main); line-height: 1.6; font-size: 0.95rem; white-space: pre-wrap; margin: 0;"><%= @artist.bio.presence || "No biography provided for this artist." %></p>

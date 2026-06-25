@@ -9,6 +9,7 @@ class Artist < ApplicationRecord
   has_many :media, dependent: :destroy
   has_many :albums, dependent: :destroy
   has_one_attached :photo
+  has_one_attached :banner
 
   attr_accessor :photo_url
 

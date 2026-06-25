@@ -89,6 +89,15 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Queen Updated", @artist.name
   end
 
+  test "should update artist with banner" do
+    banner = fixture_file_upload(Rails.root.join("db/seeds/images/dark_side_cover.png"), "image/png")
+    patch artist_url(@artist), params: { artist: { name: "Queen Updated", bio: "New bio", banner: banner } }
+    assert_redirected_to artists_url
+    @artist.reload
+    assert_equal "Queen Updated", @artist.name
+    assert @artist.banner.attached?
+  end
+
   test "should destroy artist" do
     assert_difference("Artist.count", -1) do
       delete artist_url(@artist)

@@ -131,4 +131,17 @@ class ArtistTest < ActiveSupport::TestCase
       end
     end
   end
+
+  test "should be able to attach banner to artist" do
+    artist = Artist.new(name: "Banner Test Artist")
+    assert_not artist.banner.attached?
+
+    artist.banner.attach(
+      io: File.open(Rails.root.join("db/seeds/images/dark_side_cover.png")),
+      filename: "dark_side_cover.png",
+      content_type: "image/png"
+    )
+    assert artist.save
+    assert artist.banner.attached?
+  end
 end

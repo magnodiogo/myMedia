@@ -1,6 +1,7 @@
 class ArtistsController < ApplicationController
   before_action :set_artist, only: %i[ show edit update destroy update_wiki update_photo load_discography ]
   before_action :require_admin!, only: %i[ new create edit update destroy update_wiki update_photo load_discography ]
+  before_action :resize_uploaded_images, only: %i[ create update ]
 
   def index
     @artists = Artist.with_attached_photo.all.order(:name)
@@ -78,6 +79,22 @@ class ArtistsController < ApplicationController
   end
 
   def artist_params
-    params.require(:artist).permit(:name, :bio, :photo)
+    params.require(:artist).permit(:name, :bio, :photo, :banner)
+  end
+
+  def resize_uploaded_images
+    if params.dig(:artist, :photo).present?
+      uploaded_file = params[:artist][:photo]
+      if uploaded_file.respond_to?(:tempfile) && uploaded_file.tempfile.present?
+        system("mogrify -resize '600x600>' -strip #{uploaded_file.tempfile.path}")
+      end
+    end
+
+    if params.dig(:artist, :banner).present?
+      uploaded_file = params[:artist][:banner]
+      if uploaded_file.respond_to?(:tempfile) && uploaded_file.tempfile.present?
+        system("mogrify -crop '100x70%+0+0' -resize '1600x>' -strip -quality 85 #{uploaded_file.tempfile.path}")
+      end
+    end
   end
 end

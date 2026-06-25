@@ -147,7 +147,112 @@ class Album < ApplicationRecord
     @manual_credits_dirty = true
   end
 
+  def try_load_cover!
+    return true if cover_image.attached?
+
+    # 1. Try iTunes Search API
+    itunes_url = fetch_cover_from_itunes
+    if itunes_url.present?
+      return true if download_and_attach_cover(itunes_url)
+    end
+
+    # 2. Try Discogs Search API
+    discogs_url = fetch_cover_from_discogs
+    if discogs_url.present?
+      return true if download_and_attach_cover(discogs_url)
+    end
+
+    # 3. Fallback: if we have musicbrainz_release_group_id
+    if musicbrainz_release_group_id.present?
+      caa_url = "https://coverartarchive.org/release-group/#{musicbrainz_release_group_id}/front"
+      return true if download_and_attach_cover(caa_url)
+    end
+
+    false
+  end
+
   private
+
+  def fetch_cover_from_itunes
+    search_term = "#{artist&.name} #{title}"
+    url = "https://itunes.apple.com/search?term=#{ERB::Util.url_encode(search_term)}&entity=album&limit=5"
+    uri = URI(url)
+    
+    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true, verify_mode: OpenSSL::SSL::VERIFY_NONE) do |http|
+      http.read_timeout = 5
+      http.open_timeout = 5
+      http.get(uri.request_uri)
+    end
+
+    if response.code == '200'
+      data = JSON.parse(response.body)
+      if data["results"] && data["results"].any?
+        best_match = data["results"].find do |result|
+          result["collectionName"].to_s.downcase.include?(title.downcase) ||
+            title.downcase.include?(result["collectionName"].to_s.downcase)
+        end
+        best_match ||= data["results"].first
+        artwork_url = best_match["artworkUrl100"]
+        return artwork_url.gsub("100x100bb", "600x600bb") if artwork_url.present?
+      end
+    end
+    nil
+  rescue => e
+    Rails.logger.warn "iTunes cover fetch failed for #{title}: #{e.message}"
+    nil
+  end
+
+  def fetch_cover_from_discogs
+    token = ENV["DISCOGS_TOKEN"] || "TPfEJXlWcimuwWmFvvENlMGtyHbvJtqhsSzbpjuX"
+    search_term = "#{artist&.name} #{title}"
+    uri = URI("https://api.discogs.com/database/search?q=#{ERB::Util.url_encode(search_term)}&type=release")
+
+    http = Net::HTTP.new(uri.hostname, uri.port)
+    http.use_ssl = uri.scheme == "https"
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+
+    request = Net::HTTP::Get.new(uri)
+    request["Authorization"] = "Discogs Token #{token}"
+    request["User-Agent"] = "myMedia/1.0"
+
+    response = http.request(request)
+    if response.code == '200'
+      data = JSON.parse(response.body)
+      if data["results"] && data["results"].any?
+        best_match = data["results"].find do |result|
+          result["title"].to_s.downcase.include?(title.downcase)
+        end
+        best_match ||= data["results"].first
+        cover_url = best_match["cover_image"].presence || best_match["thumb"].presence
+        return cover_url if cover_url.present?
+      end
+    end
+    nil
+  rescue => e
+    Rails.logger.warn "Discogs cover fetch failed for #{title}: #{e.message}"
+    nil
+  end
+
+  def download_and_attach_cover(url)
+    temp_path = nil
+    begin
+      file = URI.open(url, "User-Agent" => "myMedia/1.0", ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE, open_timeout: 5, read_timeout: 10)
+      temp_path = Rails.root.join("tmp", "album-cover-#{SecureRandom.hex(8)}.jpg")
+      File.open(temp_path, "wb") { |f| f.write(file.read) }
+
+      system("mogrify -resize '600x600>' -strip #{temp_path}")
+
+      cover_image.attach(io: File.open(temp_path), filename: "album-cover-#{SecureRandom.hex(8)}.jpg", content_type: "image/jpeg")
+      File.delete(temp_path) if File.exist?(temp_path)
+      
+      save!
+      true
+    rescue => e
+      Rails.logger.error("Failed to download and attach album cover from URL #{url}: #{e.message}")
+      File.delete(temp_path) if temp_path && File.exist?(temp_path)
+      false
+    end
+  end
 
   def persist_manual_credits
     parsed_credits = @manual_credits_text.to_s.split("\n").map(&:strip).reject(&:empty?).map do |line|

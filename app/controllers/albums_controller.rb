@@ -1,6 +1,6 @@
 class AlbumsController < ApplicationController
-  before_action :set_album, only: %i[ show load_metadata update_allmusic_url edit update ]
-  before_action :require_admin!, only: %i[ load_metadata update_allmusic_url edit update ]
+  before_action :set_album, only: %i[ show load_metadata update_allmusic_url edit update try_load_cover ]
+  before_action :require_admin!, only: %i[ load_metadata update_allmusic_url edit update try_load_cover ]
   before_action :resize_uploaded_cover, only: %i[ update ]
 
   def show
@@ -35,6 +35,14 @@ class AlbumsController < ApplicationController
       notice += " AllMusic import failed: #{allmusic_result[:error]}." if allmusic_result && !allmusic_result[:skipped] && !allmusic_result[:success]
 
       redirect_to album_path(@album), notice: notice
+    end
+  end
+
+  def try_load_cover
+    if @album.try_load_cover!
+      redirect_to album_path(@album), notice: "Album cover loaded successfully."
+    else
+      redirect_to album_path(@album), alert: "Could not find a cover on the internet for this album."
     end
   end
 
