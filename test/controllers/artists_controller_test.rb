@@ -61,6 +61,22 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
     assert_select "form button", text: "Load Discography", count: 0
   end
 
+  test "discography should use physical media cover when album cover is missing" do
+    album = albums(:night_at_the_opera)
+    medium = media(:one)
+    medium.cover_image.attach(
+      io: File.open(Rails.root.join("db/seeds/images/dark_side_cover.png")),
+      filename: "dark_side_cover.png",
+      content_type: "image/png"
+    )
+
+    get artist_url(@artist)
+
+    assert_response :success
+    assert_not album.cover_image.attached?
+    assert_select ".artist-discography-grid img.media-card-cover", minimum: 1
+  end
+
   test "should get edit" do
     get edit_artist_url(@artist)
     assert_response :success

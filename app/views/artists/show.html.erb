@@ -72,12 +72,13 @@
           <div class="read-more-content discography-content <%= 'is-collapsible' if albums.size > 6 %>" data-read-more-target="content">
             <div class="catalog-grid grid-simple artist-discography-grid">
               <% albums.each do |album| %>
+                <% cover_record = album.cover_image.attached? ? album : album.media.detect { |medium| medium.cover_image.attached? } %>
                 <div class="media-card">
                   <div class="media-card-cover-wrapper">
                     <a href="<%= album_path(album) %>" class="media-card-cover-link">
-                      <div class="media-card-cover-container <%= 'media-card-cover-placeholder' unless album.cover_image.attached? %>">
-                        <% if album.cover_image.attached? %>
-                          <%= image_tag album.cover_image, class: "media-card-cover" %>
+                      <div class="media-card-cover-container <%= 'media-card-cover-placeholder' unless cover_record&.cover_image&.attached? %>">
+                        <% if cover_record&.cover_image&.attached? %>
+                          <%= image_tag cover_record.cover_image, class: "media-card-cover" %>
                         <% else %>
                           <span class="placeholder-icon">🎵</span>
                         <% end %>

@@ -7,7 +7,7 @@ class ArtistsController < ApplicationController
   end
 
   def show
-    @albums = @artist.albums.includes(:media).with_attached_cover_image.order(:release_year, :title)
+    @albums = @artist.albums.includes(media: { cover_image_attachment: :blob }).with_attached_cover_image.order(:release_year, :title)
     @albums_by_type = @albums.group_by(&:album_type)
     @media = @artist.media.includes(:album, :media_type).order(title: :asc)
     @collection_items = current_user.user_media.joins(:media).includes(media: [:album, :media_type, { cover_image_attachment: :blob }]).where(media: { artist_id: @artist.id }).order(created_at: :desc) if current_user

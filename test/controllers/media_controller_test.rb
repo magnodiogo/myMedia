@@ -139,6 +139,47 @@ class MediaControllerTest < ActionDispatch::IntegrationTest
     assert_equal allmusic_url, @media.allmusic_url
   end
 
+  test "refresh metadata should import allmusic data when url is present" do
+    allmusic_url = "https://www.allmusic.com/album/i-still-do-mw0002922480"
+    @media.update!(allmusic_url: allmusic_url)
+    fake_allmusic_result = {
+      success: true,
+      skipped: false,
+      error: nil,
+      parsed: {},
+      credits: [
+        { person_name: "Glyn Johns", role: "Producer", source: "allmusic" }
+      ]
+    }
+    allmusic_called_with = nil
+
+    fake_enrichment_service = Struct.new(:media) do
+      def perform
+        true
+      end
+    end
+
+    original_enrichment_new = MediaEnrichmentService.method(:new)
+    original_allmusic_call = Allmusic::ImportAlbumService.method(:call)
+    MediaEnrichmentService.define_singleton_method(:new) { |media| fake_enrichment_service.new(media) }
+    Allmusic::ImportAlbumService.define_singleton_method(:call) do |album|
+      allmusic_called_with = album
+      fake_allmusic_result
+    end
+
+    begin
+      post refresh_metadata_media_url(@media)
+    ensure
+      MediaEnrichmentService.define_singleton_method(:new) { |*args| original_enrichment_new.call(*args) }
+      Allmusic::ImportAlbumService.define_singleton_method(:call) { |*args| original_allmusic_call.call(*args) }
+    end
+
+    assert_redirected_to media_url(@media)
+    assert_equal @media.album, allmusic_called_with
+    assert_equal allmusic_url, @media.album.reload.allmusic_url
+    assert_equal "Media information is being updated. AllMusic data imported: 1 credits.", flash[:notice]
+  end
+
   test "should destroy media" do
     assert_difference("Media.count", -1) do
       delete media_url(@media)

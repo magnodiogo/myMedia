@@ -25,6 +25,7 @@ class Media < ApplicationRecord
   attr_accessor :cover_url
 
   before_validation :assign_album_from_media_attributes, if: -> { album.blank? && title.present? && artist.present? }
+  before_save :sync_allmusic_url_to_album, if: -> { allmusic_url.present? && album.present? }
   before_save :download_cover_from_url, if: -> { cover_url.present? }
   after_create_commit :enrich_metadata, if: -> { !Rails.env.test? }
 
@@ -91,6 +92,10 @@ class Media < ApplicationRecord
     rescue => e
       Rails.logger.error("Failed to download cover from URL #{url}: #{e.message}")
     end
+  end
+
+  def sync_allmusic_url_to_album
+    album.allmusic_url ||= allmusic_url
   end
 
   def enrich_metadata

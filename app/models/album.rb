@@ -25,6 +25,14 @@ class Album < ApplicationRecord
 
   has_many :media, dependent: :restrict_with_error
   has_many :tracks, -> { order(:disc_number, :track_number) }, dependent: :destroy
+  has_many :album_credits, dependent: :destroy
+  has_many :credit_people, through: :album_credits
+  has_many :album_genre_links, dependent: :destroy
+  has_many :media_genres, through: :album_genre_links
+  has_many :album_style_links, dependent: :destroy
+  has_many :media_styles, through: :album_style_links
+  has_many :album_recording_location_links, dependent: :destroy
+  has_many :recording_locations, through: :album_recording_location_links
 
   has_one_attached :cover_image
 
@@ -64,6 +72,18 @@ class Album < ApplicationRecord
 
   def participant_credits
     display_tracks.flat_map(&:track_credits).group_by(&:name).sort_by { |name, _credits| name.to_s.downcase }
+  end
+
+  def import_allmusic!
+    Allmusic::ImportAlbumService.call(self)
+  end
+
+  def formatted_duration
+    return nil if duration_seconds.blank?
+
+    minutes = duration_seconds / 60
+    seconds = duration_seconds % 60
+    format("%d:%02d", minutes, seconds)
   end
 
   private

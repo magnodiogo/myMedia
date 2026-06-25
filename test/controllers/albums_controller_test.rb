@@ -55,8 +55,8 @@ class AlbumsControllerTest < ActionDispatch::IntegrationTest
     original_new = AlbumEnrichmentService.method(:new)
     original_call = Allmusic::ImportAlbumService.method(:call)
     AlbumEnrichmentService.define_singleton_method(:new) { |album| fake_service.new(album) }
-    Allmusic::ImportAlbumService.define_singleton_method(:call) do |medium|
-      allmusic_called_with = medium
+    Allmusic::ImportAlbumService.define_singleton_method(:call) do |album|
+      allmusic_called_with = album
       fake_allmusic_result
     end
 
@@ -71,8 +71,9 @@ class AlbumsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
-    assert_redirected_to album_url(@album)
-    assert_equal @media, allmusic_called_with
+    assert_redirected_to album_url(@album.reload)
+    assert_equal @album, allmusic_called_with
+    assert_equal @media.allmusic_url, @album.reload.allmusic_url
     assert_equal "Album data loaded. Tracks imported: 2, tracks updated: 1, lyrics found: 2. AllMusic credits imported: 2.", flash[:notice]
   end
 

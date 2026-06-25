@@ -166,7 +166,16 @@ class MediaController < ApplicationController
 
   def refresh_metadata
     MediaEnrichmentService.new(@media).perform
-    redirect_to @media, notice: "Media information is being updated."
+    allmusic_result = import_allmusic_metadata
+
+    notice = "Media information is being updated."
+    if allmusic_result && !allmusic_result[:skipped] && allmusic_result[:success]
+      notice += " AllMusic data imported: #{allmusic_result[:credits].size} credits."
+    elsif allmusic_result && !allmusic_result[:skipped] && !allmusic_result[:success]
+      notice += " AllMusic import failed: #{allmusic_result[:error]}."
+    end
+
+    redirect_to @media, notice: notice
   end
 
   private
@@ -187,5 +196,12 @@ class MediaController < ApplicationController
 
   def media_params
     params.require(:media).permit(:media_type_id, :title, :artist, :release_year, :catalog_number, :barcode, :allmusic_url, :notes, :cover_image, :cover_url)
+  end
+
+  def import_allmusic_metadata
+    return nil if @media.allmusic_url.blank?
+
+    @media.album.update!(allmusic_url: @media.allmusic_url) if @media.album.present? && @media.album.allmusic_url.blank?
+    @media.album&.import_allmusic! || @media.import_allmusic!
   end
 end

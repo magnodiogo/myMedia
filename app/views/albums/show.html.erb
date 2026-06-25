@@ -64,12 +64,32 @@
           </div>
 
           <div class="spec-item">
+            <span class="spec-label">Duration</span>
+            <span class="spec-value"><%= @album.formatted_duration.presence || "Unknown" %></span>
+          </div>
+
+          <div class="spec-item">
+            <span class="spec-label">Genre</span>
+            <span class="spec-value"><%= @album.media_genres.map(&:name).join(", ").presence || "Unknown" %></span>
+          </div>
+
+          <div class="spec-item">
+            <span class="spec-label">Styles</span>
+            <span class="spec-value"><%= @album.media_styles.map(&:name).join(", ").presence || "Unknown" %></span>
+          </div>
+
+          <div class="spec-item">
+            <span class="spec-label">Recording Location</span>
+            <span class="spec-value"><%= @album.recording_locations.map(&:name).join(", ").presence || "Unknown" %></span>
+          </div>
+
+          <div class="spec-item">
             <span class="spec-label">Physical Editions</span>
             <span class="spec-value"><%= @album.media.size %></span>
           </div>
         </div>
 
-        <% if @album.musicbrainz_release_group_id.present? || @album.wikidata_id.present? || @album.wikipedia_url.present? %>
+        <% if @album.musicbrainz_release_group_id.present? || @album.wikidata_id.present? || @album.wikipedia_url.present? || @album.allmusic_url.present? %>
           <div class="spec-notes">
             <h3>Metadata Sources</h3>
             <div class="collector-notes-content">
@@ -81,6 +101,9 @@
               <% end %>
               <% if @album.wikipedia_url.present? %>
                 <p><%= link_to "Wikipedia", @album.wikipedia_url, target: "_blank", rel: "noopener", style: "color: #a5b4fc;" %></p>
+              <% end %>
+              <% if @album.allmusic_url.present? %>
+                <p><%= link_to "AllMusic", @album.allmusic_url, target: "_blank", rel: "noopener", style: "color: #a5b4fc;" %></p>
               <% end %>
             </div>
           </div>
@@ -176,7 +199,31 @@
       </div>
 
       <div class="tab-panel" data-tabs-target="panel" data-tab-id="participants" style="display: none;">
-        <% if @participant_credits.any? %>
+        <% if @album_credits_by_category.any? %>
+          <% [
+            ["Composers", @album_credits_by_category["composer"]],
+            ["Musicians", @album_credits_by_category["musician"]],
+            ["Production & Artwork", @album_credits_by_category["technical"]]
+          ].each do |heading, credits| %>
+            <% next if credits.blank? %>
+            <h3 style="font-size: 1rem; color: #a5b4fc; margin: 1.5rem 0 0.75rem;"><%= heading %></h3>
+            <div class="participants-list">
+              <% credits.group_by(&:credit_person).each do |credit_person, grouped_credits| %>
+                <% person_name = credit_person&.name || grouped_credits.first.person_name %>
+                <div class="participant-row">
+                  <strong>
+                    <% if credit_person.present? %>
+                      <%= link_to person_name, credit_person_path(credit_person), style: "color: inherit; text-decoration: none;" %>
+                    <% else %>
+                      <%= person_name %>
+                    <% end %>
+                  </strong>
+                  <span><%= grouped_credits.map(&:role).uniq.sort.join(", ") %></span>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        <% elsif @participant_credits.any? %>
           <div class="participants-list">
             <% @participant_credits.each do |name, credits| %>
               <div class="participant-row">

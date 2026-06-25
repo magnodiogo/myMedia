@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   resources :media_types
   resources :credit_people, only: [:show] do
     member do
+      post :load_metadata
       post :update_wiki
       post :update_photo
     end

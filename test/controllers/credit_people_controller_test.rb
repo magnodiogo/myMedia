@@ -32,6 +32,37 @@ class CreditPeopleControllerTest < ActionDispatch::IntegrationTest
     assert_select ".tab-link", text: "Roles"
     assert_select "h2.media-title", text: @media.album.title
     assert_select ".media-card", minimum: 1
+    assert_select ".media-card-cover-container", minimum: 1
+  end
+
+  test "admin should load person metadata" do
+    sign_in users(:two)
+
+    @person.define_singleton_method(:load_external_data) do
+      { allmusic: true, wikipedia_bio: true, wikipedia_photo: false, bio: true, photo: false, errors: [] }
+    end
+
+    original_friendly = CreditPerson.method(:friendly)
+    original_find = CreditPerson.method(:find)
+    person = @person
+    CreditPerson.define_singleton_method(:friendly) { CreditPerson }
+    CreditPerson.define_singleton_method(:find) { |_id| person }
+
+    begin
+      post load_metadata_credit_person_url(@person)
+    ensure
+      CreditPerson.define_singleton_method(:friendly) { |*args| original_friendly.call(*args) }
+      CreditPerson.define_singleton_method(:find) { |*args| original_find.call(*args) }
+    end
+
+    assert_redirected_to credit_person_url(@person)
+    assert_equal "Person data loaded from AllMusic and Wikipedia biography.", flash[:notice]
+  end
+
+  test "common user should not load person metadata" do
+    post load_metadata_credit_person_url(@person)
+
+    assert_redirected_to root_path
   end
 
 end

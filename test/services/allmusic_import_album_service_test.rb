@@ -48,6 +48,29 @@ class AllmusicImportAlbumServiceTest < ActiveSupport::TestCase
     assert_credit("Simon Climie", "Keyboards")
   end
 
+  test "imports allmusic metadata directly into album" do
+    album = @media.album
+    album.update!(allmusic_url: @media.allmusic_url)
+
+    service = Allmusic::ImportAlbumService.new(album)
+    html = @sample_html
+    service.define_singleton_method(:download_html) { |_url| html }
+
+    result = service.call
+
+    assert result[:success]
+    album.reload
+    assert album.allmusic_imported_at.present?
+    assert_nil album.allmusic_import_error
+    assert_equal 3_250, album.duration_seconds
+    assert_equal "54:10", album.formatted_duration
+    assert_equal ["Pop/Rock"], album.media_genres.order(:name).pluck(:name)
+    assert_equal ["Album Rock", "Contemporary Pop/Rock"], album.media_styles.order(:name).pluck(:name)
+    assert_equal ["British Grove, London, UK"], album.recording_locations.order(:name).pluck(:name)
+    assert_equal 27, album.album_credits.where(source: "allmusic").count
+    assert album.album_credits.where(person_name: "Andy Fairweather Low", role: "Guitar (Electric)", credit_category: "musician").exists?
+  end
+
   test "does not duplicate existing AllMusic credits or touch other sources" do
     @media.album_credits.create!(person_name: "Eric Clapton", role: "Vocals", source: "allmusic")
     @media.album_credits.create!(person_name: "Old AllMusic Person", role: "Old Role", source: "allmusic")

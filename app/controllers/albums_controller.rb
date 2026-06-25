@@ -3,9 +3,10 @@ class AlbumsController < ApplicationController
   before_action :require_admin!, only: %i[ load_metadata ]
 
   def show
-    @album = Album.includes(:artist, :tracks, media: [:media_type, :user_media]).friendly.find(params[:id])
+    @album = Album.includes(:artist, :media_genres, :media_styles, :recording_locations, album_credits: :credit_person, tracks: :track_credits, media: [:media_type, :user_media]).friendly.find(params[:id])
     @canonical_media = @album.canonical_media
     @tracks = @album.display_tracks
+    @album_credits_by_category = @album.album_credits.includes(:credit_person).order(:person_name, :role).group_by(&:credit_category)
     @participant_credits = @album.participant_credits
     @user_media = current_user.user_media.includes(media: [:media_type, { cover_image_attachment: :blob }]).joins(:media).where(media: { album_id: @album.id }).order(created_at: :desc) if current_user
   end
@@ -16,7 +17,7 @@ class AlbumsController < ApplicationController
     if result[:error].present?
       redirect_to album_path(@album), alert: result[:error]
     else
-      allmusic_result = import_allmusic_for_album
+      allmusic_result = @album.import_allmusic!
       notice = "Album data loaded. Tracks imported: #{result[:imported_tracks]}, tracks updated: #{result[:updated_tracks]}, lyrics found: #{result[:lyrics_found]}."
       notice += " AllMusic credits imported: #{allmusic_result[:credits].size}." if allmusic_result && !allmusic_result[:skipped] && allmusic_result[:success]
       notice += " AllMusic import failed: #{allmusic_result[:error]}." if allmusic_result && !allmusic_result[:skipped] && !allmusic_result[:success]
@@ -29,10 +30,13 @@ class AlbumsController < ApplicationController
 
   def set_album
     @album = Album.friendly.find(params[:id])
+    sync_album_allmusic_url
   end
 
-  def import_allmusic_for_album
-    medium = @album.media.where.not(allmusic_url: [nil, ""]).first || @album.canonical_media
-    medium&.import_allmusic!
+  def sync_album_allmusic_url
+    return if @album.allmusic_url.present?
+
+    allmusic_url = @album.media.where.not(allmusic_url: [nil, ""]).pick(:allmusic_url)
+    @album.update!(allmusic_url: allmusic_url) if allmusic_url.present?
   end
 end

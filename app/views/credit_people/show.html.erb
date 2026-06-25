@@ -5,8 +5,7 @@
   </div>
   <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
     <% if current_user&.admin? %>
-      <%= button_to "Sync Bio", update_wiki_credit_person_path(@credit_person), method: :post, class: "btn btn-secondary" %>
-      <%= button_to "Sync Photo", update_photo_credit_person_path(@credit_person), method: :post, class: "btn btn-secondary" %>
+      <%= button_to "Load Person Data", load_metadata_credit_person_path(@credit_person), method: :post, class: "btn btn-primary" %>
     <% end %>
     <a href="<%= media_index_path %>" class="btn btn-secondary">Back to Collection</a>
   </div>
@@ -29,7 +28,7 @@
     <div class="spec-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
       <h2 style="font-size: 1.6rem; color: #a5b4fc; margin: 0;"><%= @credit_person.name %></h2>
       <div style="background-color: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #a5b4fc; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
-        <%= pluralize(@credits_by_media.size, "media item") %> credited
+        <%= pluralize(@credits_by_media.size + @credits_by_album.size, "media item") %> credited
       </div>
     </div>
 
@@ -70,10 +69,46 @@
   </div>
 
   <div class="tab-panel" data-tabs-target="panel" data-tab-id="media">
-    <% if @credits_by_media.any? %>
+    <% if @credits_by_media.any? || @credits_by_album.any? %>
       <div class="catalog-grid grid-simple">
+        <% @credits_by_album.each do |album, credits| %>
+          <div class="media-card">
+            <div class="media-card-cover-wrapper">
+              <a href="<%= album_path(album) %>" class="media-card-cover-link">
+                <div class="media-card-cover-container <%= 'media-card-cover-placeholder' unless album.cover_image.attached? %>">
+                  <% if album.cover_image.attached? %>
+                    <%= image_tag album.cover_image, class: "media-card-cover" %>
+                  <% else %>
+                    <span>🎵</span>
+                  <% end %>
+                </div>
+              </a>
+            </div>
+            <div class="media-card-content">
+              <div class="media-card-header">
+                <h2 class="media-title"><%= link_to album.title, album_path(album), style: "color: inherit; text-decoration: none;" %></h2>
+                <p class="media-artist"><%= album.artist.name %> • Album</p>
+              </div>
+              <div style="margin-top: 1rem; color: var(--text-muted); font-size: 0.85rem;">
+                <%= credits.map(&:role).uniq.join(", ") %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
         <% @credits_by_media.each do |medium, credits| %>
           <div class="media-card">
+            <div class="media-card-cover-wrapper">
+              <a href="<%= media_path(medium) %>" class="media-card-cover-link">
+                <div class="media-card-cover-container <%= 'media-card-cover-placeholder' unless medium.cover_image.attached? %>">
+                  <% if medium.cover_image.attached? %>
+                    <%= image_tag medium.cover_image, class: "media-card-cover" %>
+                  <% else %>
+                    <span>🎵</span>
+                  <% end %>
+                </div>
+              </a>
+            </div>
             <div class="media-card-content">
               <div class="media-card-header">
                 <h2 class="media-title"><%= link_to medium.album&.title || medium.title, media_path(medium), style: "color: inherit; text-decoration: none;" %></h2>

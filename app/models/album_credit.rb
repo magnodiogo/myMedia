@@ -29,13 +29,15 @@ class AlbumCredit < ApplicationRecord
 
   CATEGORIES = %w[composer musician technical].freeze
 
-  belongs_to :media
+  belongs_to :media, optional: true
+  belongs_to :album, optional: true
   belongs_to :credit_person, optional: true
 
   validates :person_name, presence: true
   validates :role, presence: true
   validates :source, presence: true
   validates :credit_category, presence: true, inclusion: { in: CATEGORIES }
+  validate :media_or_album_present
 
   before_validation :assign_person_name_from_credit_person
   before_validation :assign_credit_category
@@ -60,5 +62,11 @@ class AlbumCredit < ApplicationRecord
 
   def assign_credit_category
     self.credit_category = self.class.category_for_role(role) if role.present?
+  end
+
+  def media_or_album_present
+    return if media.present? || album.present?
+
+    errors.add(:base, "Credit must belong to a media item or album")
   end
 end

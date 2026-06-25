@@ -1,6 +1,7 @@
 require "open-uri"
 require "net/http"
 require "json"
+require "cgi"
 
 class CreditPerson < ApplicationRecord
   extend FriendlyId
@@ -21,7 +22,7 @@ class CreditPerson < ApplicationRecord
   end
 
   def update_bio_from_wikipedia
-    summary_data = fetch_wikipedia_summary(name, "en") || fetch_wikipedia_summary(name, "pt")
+    summary_data = fetch_wikipedia_summary_candidates(require_extract: true)
     return false if summary_data.blank? || summary_data["extract"].blank?
 
     self.bio = summary_data["extract"]
@@ -30,14 +31,114 @@ class CreditPerson < ApplicationRecord
   end
 
   def update_photo_from_wikipedia
-    image_url = fetch_wikipedia_image_url(name, "en") || fetch_wikipedia_image_url(name, "pt")
+    image_url = fetch_wikipedia_image_url_candidates
     return false if image_url.blank?
 
     self.photo_url = image_url
     save
   end
 
+  def load_external_data
+    result = {
+      allmusic: false,
+      wikipedia_bio: false,
+      wikipedia_photo: false,
+      bio: false,
+      photo: false,
+      errors: []
+    }
+
+    summary_data = fetch_wikipedia_summary_candidates(require_extract: true)
+    if summary_data.present?
+      self.bio = summary_data["extract"]
+      self.wikipedia_url = summary_data["fullurl"] if summary_data["fullurl"].present?
+      result[:wikipedia_bio] = true
+      result[:bio] = true
+    elsif wikipedia_url.blank?
+      summary_data = fetch_wikipedia_summary_candidates
+      if summary_data.present? && summary_data["fullurl"].present?
+        self.wikipedia_url = summary_data["fullurl"]
+        result[:wikipedia_bio] = true
+      end
+    end
+
+    allmusic_result = Allmusic::ImportPersonService.call(self)
+    if allmusic_result[:success]
+      parsed = allmusic_result[:parsed] || {}
+
+      if bio.blank? && parsed[:bio].present?
+        self.bio = parsed[:bio]
+        result[:allmusic] = true
+        result[:bio] = true
+      end
+
+      if parsed[:image_url].present? && !photo.attached?
+        self.photo_url = parsed[:image_url]
+        result[:allmusic] = true
+        result[:photo] = true
+      end
+    elsif !allmusic_result[:skipped]
+      result[:errors] << allmusic_result[:error]
+    end
+
+    unless photo.attached? || photo_url.present?
+      image_url = fetch_wikipedia_image_url_candidates
+      if image_url.present?
+        self.photo_url = image_url
+        result[:wikipedia_photo] = true
+        result[:photo] = true
+      end
+    end
+
+    save if changed? || photo_url.present?
+    result
+  end
+
   private
+
+  def fetch_wikipedia_summary_candidates(require_extract: false)
+    wikipedia_title_candidates.each do |candidate|
+      summary = fetch_wikipedia_summary(candidate[:title], candidate[:language])
+      next if summary.blank?
+      next if require_extract && summary["extract"].blank?
+
+      return summary
+    end
+
+    nil
+  end
+
+  def fetch_wikipedia_image_url_candidates
+    wikipedia_title_candidates.each do |candidate|
+      image_url = fetch_wikipedia_image_url(candidate[:title], candidate[:language])
+      return image_url if image_url.present?
+    end
+
+    nil
+  end
+
+  def wikipedia_title_candidates
+    candidates = []
+    url_candidate = wikipedia_title_candidate_from_url
+    candidates << url_candidate if url_candidate.present?
+    candidates << { title: name, language: "en" }
+    candidates << { title: name, language: "pt" }
+    candidates.uniq
+  end
+
+  def wikipedia_title_candidate_from_url
+    return nil if wikipedia_url.blank?
+
+    uri = URI.parse(wikipedia_url)
+    language = uri.host.to_s[/\A([a-z-]+)\.wikipedia\.org\z/, 1].presence || "en"
+    title = uri.path.to_s.sub(%r{\A/wiki/}, "")
+    title = CGI.unescape(title).tr("_", " ").presence
+    return nil if title.blank?
+
+    { title: title, language: language }
+  rescue URI::InvalidURIError
+    nil
+  end
 
   def fetch_wikipedia_summary(title, language)
     uri = URI("https://#{language}.wikipedia.org/w/api.php")
