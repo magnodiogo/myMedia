@@ -56,7 +56,7 @@ module Allmusic
 
       doc = Nokogiri::HTML(html)
       links = doc.css("a[href*='/album/']")
-      preferred_link = links.find { |link| matching_album_link?(link) } || links.first
+      preferred_link = links.find { |link| matching_album_link?(link) }
       href = preferred_link&.[]("href").presence
       return nil if href.blank?
 
@@ -66,9 +66,25 @@ module Allmusic
     end
 
     def matching_album_link?(link)
-      text = link.text.to_s.squish.downcase
-      title = @album.title.to_s.squish.downcase
-      text.present? && title.present? && (text == title || text.include?(title))
+      title = normalized_title(@album.title)
+      return false if title.blank?
+
+      link_title = normalized_title(link.text)
+      slug_title = normalized_title(album_slug_from_href(link["href"]))
+
+      link_title == title || slug_title == title
+    end
+
+    def album_slug_from_href(href)
+      href.to_s[%r{/album/([^/?#]+)}, 1].to_s.sub(/-mw\d+\z/, "")
+    end
+
+    def normalized_title(value)
+      value.to_s
+        .downcase
+        .gsub(/&/, " and ")
+        .gsub(/[^a-z0-9]+/, " ")
+        .squish
     end
   end
 end

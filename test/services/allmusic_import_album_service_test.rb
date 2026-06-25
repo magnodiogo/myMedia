@@ -95,6 +95,41 @@ class AllmusicImportAlbumServiceTest < ActiveSupport::TestCase
     assert_includes requested_url, "Miles%20Davis%20Kind%20of%20Blue"
   end
 
+  test "does not fall back to first allmusic album result when title does not match" do
+    album = @media.album
+    album.update!(title: "Temptation")
+    service = Allmusic::AlbumSearchService.new(album)
+    html = <<~HTML
+      <html>
+        <body>
+          <a href="/album/the-very-best-of-diana-krall-mw0000482876">The Very Best of Diana Krall</a>
+        </body>
+      </html>
+    HTML
+
+    service.define_singleton_method(:download_html) { |_url| html }
+
+    assert_nil service.call
+  end
+
+  test "matches allmusic album result by slug when link text is incomplete" do
+    album = @media.album
+    album.update!(title: "Temptation")
+    service = Allmusic::AlbumSearchService.new(album)
+    html = <<~HTML
+      <html>
+        <body>
+          <a href="/album/the-very-best-of-diana-krall-mw0000482876">The Very Best of Diana Krall</a>
+          <a href="/album/temptation-mw0001234567">Album details</a>
+        </body>
+      </html>
+    HTML
+
+    service.define_singleton_method(:download_html) { |_url| html }
+
+    assert_equal "https://www.allmusic.com/album/temptation-mw0001234567", service.call
+  end
+
   test "does not duplicate existing AllMusic credits or touch other sources" do
     @media.album_credits.create!(person_name: "Eric Clapton", role: "Vocals", source: "allmusic")
     @media.album_credits.create!(person_name: "Old AllMusic Person", role: "Old Role", source: "allmusic")
