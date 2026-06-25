@@ -1,0 +1,88 @@
+<%= form_with(model: album, local: true) do |form| %>
+  <% if album.errors.any? %>
+    <div class="error-messages">
+      <h2><%= pluralize(album.errors.count, "error") %> prohibited this album from being saved:</h2>
+      <ul>
+        <% album.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-group">
+    <%= form.label :cover_image, "Cover Art", class: "form-label" %>
+    <%= form.file_field :cover_image, class: "form-control" %>
+    <% if album.cover_image.attached? %>
+      <div style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+        <%= image_tag album.cover_image, style: "max-width: 100px; border-radius: 4px;" %>
+        <span class="cover-preview-text">Current cover image</span>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :title, "Album Title", class: "form-label" %>
+    <%= form.text_field :title, class: "form-control", placeholder: "e.g., Room for Squares" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :album_type, "Album Type", class: "form-label" %>
+    <%= form.select :album_type, Album.album_types.keys.map { |k| [k.humanize, k] }, {}, { class: "form-control" } %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :metadata_status, "Metadata Status", class: "form-label" %>
+    <%= form.select :metadata_status, Album.metadata_statuses.keys.map { |k| [k.humanize, k] }, {}, { class: "form-control" } %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :release_year, "Release Year", class: "form-label" %>
+    <%= form.number_field :release_year, class: "form-control", placeholder: "e.g., 2001" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :original_release_date, "Original Release Date", class: "form-label" %>
+    <%= form.date_field :original_release_date, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :formatted_duration, "Duration (MM:SS)", class: "form-label" %>
+    <%= form.text_field :formatted_duration, class: "form-control", placeholder: "e.g., 53:40" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :genre_names, "Genres (comma-separated)", class: "form-label" %>
+    <%= form.text_field :genre_names, class: "form-control", placeholder: "e.g., Rock, Pop" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :style_names, "Styles (comma-separated)", class: "form-label" %>
+    <%= form.text_field :style_names, class: "form-control", placeholder: "e.g., Pop Rock, Singer/Songwriter" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :recording_location_names, "Recording Locations (comma-separated)", class: "form-label" %>
+    <%= form.text_field :recording_location_names, class: "form-control", placeholder: "e.g., Loho Studios, New York City" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :allmusic_url, "AllMusic Album URL", class: "form-label" %>
+    <%= form.url_field :allmusic_url, class: "form-control", placeholder: "https://www.allmusic.com/album/..." %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :summary, "Summary/Biography", class: "form-label" %>
+    <%= form.text_area :summary, rows: 6, class: "form-control", placeholder: "Add summary or details about this album..." %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :manual_credits_text, "Participants (Format: Name - Role, one per line)", class: "form-label" %>
+    <%= form.text_area :manual_credits_text, rows: 8, class: "form-control", placeholder: "e.g.\nJohn Mayer - Vocals\nJohn Mayer - Guitar\nSteve Jordan - Drums" %>
+  </div>
+
+  <div class="form-actions">
+    <%= link_to "Cancel", album_path(album), class: "btn btn-secondary" %>
+    <%= form.submit "Update Album", class: "btn btn-primary" %>
+  </div>
+<% end %>

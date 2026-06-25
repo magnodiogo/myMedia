@@ -65,4 +65,42 @@ class CreditPeopleControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_path
   end
 
+  test "admin should get edit page" do
+    sign_in users(:two) # admin
+    get edit_credit_person_url(@person)
+    assert_response :success
+    assert_select "h1", text: "Edit Credit Person"
+  end
+
+  test "admin should update credit person details" do
+    sign_in users(:two) # admin
+    patch credit_person_url(@person), params: {
+      credit_person: {
+        name: "Leroy Carr Updated",
+        bio: "Updated biography details.",
+        wikipedia_url: "https://en.wikipedia.org/wiki/Leroy_Carr_Updated",
+        allmusic_url: "https://www.allmusic.com/artist/leroy-carr-updated"
+      }
+    }
+
+    @person.reload
+    assert_redirected_to credit_person_url(@person)
+    assert_equal "Leroy Carr Updated", @person.name
+    assert_equal "Updated biography details.", @person.bio
+    assert_equal "https://en.wikipedia.org/wiki/Leroy_Carr_Updated", @person.wikipedia_url
+    assert_equal "https://www.allmusic.com/artist/leroy-carr-updated", @person.allmusic_url
+  end
+
+  test "common user should not get edit page" do
+    sign_in users(:one) # common user
+    get edit_credit_person_url(@person)
+    assert_redirected_to root_path
+  end
+
+  test "common user should not update credit person details" do
+    sign_in users(:one) # common user
+    patch credit_person_url(@person), params: { credit_person: { name: "Hacked Name" } }
+    assert_redirected_to root_path
+    assert_not_equal "Hacked Name", @person.reload.name
+  end
 end

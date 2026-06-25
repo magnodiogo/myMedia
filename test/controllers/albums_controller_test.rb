@@ -131,4 +131,62 @@ class AlbumsControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to root_path
   end
+
+  test "admin should get edit album page" do
+    sign_in users(:two) # admin
+    get edit_album_url(@album)
+    assert_response :success
+    assert_select "h1", text: "Edit Album"
+  end
+
+  test "admin should update album details and virtual attributes" do
+    sign_in users(:two) # admin
+    patch album_url(@album), params: {
+      album: {
+        title: "Kind of Blue Updated",
+        release_year: 1959,
+        formatted_duration: "45:30",
+        genre_names: "Jazz, Modal Jazz",
+        style_names: "Cool Jazz",
+        recording_location_names: "Columbia 30th Street Studio",
+        summary: "An updated summary of the legendary jazz album.",
+        manual_credits_text: "Miles Davis - Trumpet\nJohn Coltrane - Tenor Saxophone",
+        metadata_status: "reviewed"
+      }
+    }
+
+    @album.reload
+    assert_redirected_to album_url(@album)
+    assert_equal "reviewed", @album.metadata_status
+    assert_equal "Kind of Blue Updated", @album.title
+    assert_equal 2730, @album.duration_seconds # 45 * 60 + 30
+    assert_includes @album.media_genres.map(&:name), "Jazz"
+    assert_includes @album.media_genres.map(&:name), "Modal Jazz"
+    assert_includes @album.media_styles.map(&:name), "Cool Jazz"
+    assert_includes @album.recording_locations.map(&:name), "Columbia 30th Street Studio"
+    assert_equal "An updated summary of the legendary jazz album.", @album.summary
+    
+    # Assert manual credits got created/updated
+    credits = @album.album_credits.order(:person_name)
+    assert_equal 2, credits.count
+    assert_equal "John Coltrane", credits.first.person_name
+    assert_equal "Tenor Saxophone", credits.first.role
+    assert_equal "manual", credits.first.source
+    assert_equal "Miles Davis", credits.second.person_name
+    assert_equal "Trumpet", credits.second.role
+    assert_equal "manual", credits.second.source
+  end
+
+  test "common user should not get edit album page" do
+    sign_in users(:one) # common user
+    get edit_album_url(@album)
+    assert_redirected_to root_path
+  end
+
+  test "common user should not update album details" do
+    sign_in users(:one) # common user
+    patch album_url(@album), params: { album: { title: "Hacked Title" } }
+    assert_redirected_to root_path
+    assert_not_equal "Hacked Title", @album.reload.title
+  end
 end

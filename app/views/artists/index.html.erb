@@ -14,6 +14,7 @@
       <table class="custom-table">
         <thead>
           <tr>
+            <th style="width: 60px;">Photo</th>
             <th>Name</th>
             <th>Bio</th>
             <th style="text-align: right;">Actions</th>
@@ -22,11 +23,18 @@
         <tbody>
           <% @artists.each do |artist| %>
             <tr>
-              <td style="font-weight: 600; color: #a5b4fc;">
+              <td>
+                <% if artist.photo.attached? %>
+                  <%= image_tag artist.photo, style: "width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" %>
+                <% else %>
+                  <div style="width: 40px; height: 40px; border-radius: 50%; background-color: rgba(255, 255, 255, 0.05); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; border: 1px solid var(--panel-border);">👤</div>
+                <% end %>
+              </td>
+              <td style="font-weight: 600; color: #a5b4fc; vertical-align: middle;">
                 <a href="<%= artist_path(artist) %>" style="color: #a5b4fc; text-decoration: none;"><%= artist.name %></a>
               </td>
-              <td style="color: var(--text-muted);"><%= truncate(artist.bio, length: 80) %></td>
-              <td style="text-align: right;">
+              <td style="color: var(--text-muted); vertical-align: middle;"><%= truncate(artist.bio, length: 80) %></td>
+              <td style="text-align: right; vertical-align: middle;">
                 <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
                   <a href="<%= artist_path(artist) %>" class="btn btn-secondary btn-sm">View</a>
                   <a href="<%= edit_artist_path(artist) %>" class="btn btn-secondary btn-sm">Edit</a>

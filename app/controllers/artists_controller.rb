@@ -3,7 +3,7 @@ class ArtistsController < ApplicationController
   before_action :require_admin!, only: %i[ new create edit update destroy update_wiki update_photo load_discography ]
 
   def index
-    @artists = Artist.all.order(:name)
+    @artists = Artist.with_attached_photo.all.order(:name)
   end
 
   def show

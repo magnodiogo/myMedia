@@ -37,8 +37,10 @@ class Album < ApplicationRecord
   has_one_attached :cover_image
 
   attr_accessor :cover_url
+  attr_writer :manual_credits_text
 
   before_save :download_cover_from_url, if: -> { cover_url.present? && !cover_image.attached? }
+  before_save :persist_manual_credits, if: -> { @manual_credits_dirty }
 
   validates :title, presence: true
   validates :artist, presence: true
@@ -93,7 +95,78 @@ class Album < ApplicationRecord
     format("%d:%02d", minutes, seconds)
   end
 
+  def genre_names
+    media_genres.map(&:name).join(", ")
+  end
+
+  def genre_names=(names_string)
+    self.media_genres = names_string.to_s.split(/\s*,\s*/).map(&:strip).reject(&:empty?).map do |name|
+      MediaGenre.where("LOWER(name) = ?", name.downcase).first || MediaGenre.create!(name: name)
+    end
+  end
+
+  def style_names
+    media_styles.map(&:name).join(", ")
+  end
+
+  def style_names=(names_string)
+    self.media_styles = names_string.to_s.split(/\s*,\s*/).map(&:strip).reject(&:empty?).map do |name|
+      MediaStyle.where("LOWER(name) = ?", name.downcase).first || MediaStyle.create!(name: name)
+    end
+  end
+
+  def recording_location_names
+    recording_locations.map(&:name).join(", ")
+  end
+
+  def recording_location_names=(names_string)
+    self.recording_locations = names_string.to_s.split(/\s*,\s*/).map(&:strip).reject(&:empty?).map do |name|
+      RecordingLocation.where("LOWER(name) = ?", name.downcase).first || RecordingLocation.create!(name: name)
+    end
+  end
+
+  def formatted_duration=(value)
+    if value.blank?
+      self.duration_seconds = nil
+    else
+      parts = value.to_s.split(":").map(&:to_i)
+      if parts.size == 2
+        self.duration_seconds = (parts[0] * 60) + parts[1]
+      elsif parts.size == 1
+        self.duration_seconds = parts[0]
+      end
+    end
+  end
+
+  def manual_credits_text
+    @manual_credits_text || album_credits.order(:person_name, :role).map { |c| "#{c.person_name} - #{c.role}" }.join("\n")
+  end
+
+  def manual_credits_text=(text)
+    @manual_credits_text = text
+    @manual_credits_dirty = true
+  end
+
   private
+
+  def persist_manual_credits
+    parsed_credits = @manual_credits_text.to_s.split("\n").map(&:strip).reject(&:empty?).map do |line|
+      parts = line.split(/\s*-\s*/, 2)
+      next nil if parts.size < 2
+
+      { person_name: parts[0].strip, role: parts[1].strip }
+    end.compact
+
+    self.album_credits = parsed_credits.map do |pc|
+      person = CreditPerson.where("LOWER(name) = ?", pc[:person_name].downcase).first || CreditPerson.create!(name: pc[:person_name])
+      AlbumCredit.new(
+        credit_person: person,
+        person_name: pc[:person_name],
+        role: pc[:role],
+        source: "manual"
+      )
+    end
+  end
 
   def slug_candidates
     [

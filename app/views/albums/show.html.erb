@@ -13,6 +13,7 @@
       </div>
       <div class="media-detail-actions">
         <% if current_user&.admin? %>
+          <%= link_to "Edit Album", edit_album_path(@album), class: "btn btn-secondary" %>
           <%= button_to "Load Album Data", load_metadata_album_path(@album), method: :post, class: "btn btn-primary" %>
         <% end %>
         <a href="<%= artist_path(@album.artist) %>" class="btn btn-secondary">Back to Artist</a>

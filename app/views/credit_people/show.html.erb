@@ -5,6 +5,7 @@
   </div>
   <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
     <% if current_user&.admin? %>
+      <%= link_to "Edit Person", edit_credit_person_path(@credit_person), class: "btn btn-secondary" %>
       <%= button_to "Load Person Data", load_metadata_credit_person_path(@credit_person), method: :post, class: "btn btn-primary" %>
     <% end %>
     <a href="<%= media_index_path %>" class="btn btn-secondary">Back to Collection</a>

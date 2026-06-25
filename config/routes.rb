@@ -6,14 +6,14 @@ Rails.application.routes.draw do
   root "dashboard#index"
 
   resources :media_types
-  resources :credit_people, only: [:show] do
+  resources :credit_people, only: [:show, :edit, :update] do
     member do
       post :load_metadata
       post :update_wiki
       post :update_photo
     end
   end
-  resources :albums, only: [:show] do
+  resources :albums, only: [:show, :edit, :update] do
     member do
       post :load_metadata
       patch :update_allmusic_url

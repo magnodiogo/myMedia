@@ -1,0 +1,48 @@
+<%= form_with(model: credit_person, local: true) do |form| %>
+  <% if credit_person.errors.any? %>
+    <div class="error-messages">
+      <h2><%= pluralize(credit_person.errors.count, "error") %> prohibited this person from being saved:</h2>
+      <ul>
+        <% credit_person.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-group">
+    <%= form.label :photo, "Profile Photo", class: "form-label" %>
+    <%= form.file_field :photo, class: "form-control" %>
+    <% if credit_person.photo.attached? %>
+      <div style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+        <%= image_tag credit_person.photo, style: "max-width: 100px; border-radius: 50%; width: 100px; height: 100px; object-fit: cover;" %>
+        <span class="cover-preview-text">Current profile photo</span>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :name, "Name", class: "form-label" %>
+    <%= form.text_field :name, class: "form-control", placeholder: "e.g., Miles Davis" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :wikipedia_url, "Wikipedia URL", class: "form-label" %>
+    <%= form.url_field :wikipedia_url, class: "form-control", placeholder: "https://en.wikipedia.org/wiki/..." %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :allmusic_url, "AllMusic Artist URL", class: "form-label" %>
+    <%= form.url_field :allmusic_url, class: "form-control", placeholder: "https://www.allmusic.com/artist/..." %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :bio, "Biography", class: "form-label" %>
+    <%= form.text_area :bio, rows: 8, class: "form-control", placeholder: "Write some details about this person..." %>
+  </div>
+
+  <div class="form-actions">
+    <%= link_to "Cancel", credit_person_path(credit_person), class: "btn btn-secondary" %>
+    <%= form.submit "Update Person", class: "btn btn-primary" %>
+  </div>
+<% end %>

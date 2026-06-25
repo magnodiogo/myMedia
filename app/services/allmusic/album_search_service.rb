@@ -34,20 +34,9 @@ module Allmusic
     end
 
     def download_html(url)
-      uri = URI.parse(url)
-      http = Net::HTTP.new(uri.hostname, uri.port)
-      http.use_ssl = uri.scheme == "https"
-      http.open_timeout = 10
-      http.read_timeout = 20
-      http.verify_mode = OpenSSL::SSL::VERIFY_NONE if http.use_ssl?
-
-      request = Net::HTTP::Get.new(uri)
-      request["User-Agent"] = USER_AGENT
-      request["Accept"] = "text/html,application/xhtml+xml"
-
-      response = http.request(request)
-      return response.body.to_s if response.is_a?(Net::HTTPSuccess)
-
+      HttpClient.get(url)
+    rescue => e
+      Rails.logger.warn "[Allmusic::AlbumSearchService] download failed: #{e.message}"
       nil
     end
 
