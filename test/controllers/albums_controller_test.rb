@@ -77,6 +77,55 @@ class AlbumsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Album data loaded. Tracks imported: 2, tracks updated: 1, lyrics found: 2. AllMusic credits imported: 2.", flash[:notice]
   end
 
+  test "admin should update album allmusic url" do
+    sign_in users(:two)
+    allmusic_url = "https://www.allmusic.com/album/kind-of-blue-mw0000192322"
+
+    patch update_allmusic_url_album_url(@album), params: { album: { allmusic_url: allmusic_url } }
+
+    assert_redirected_to album_url(@album.reload)
+    assert_equal allmusic_url, @album.allmusic_url
+    assert_equal "AllMusic album link saved.", flash[:notice]
+  end
+
+  test "admin load metadata should search allmusic when album url is blank" do
+    sign_in users(:two)
+    @album.update!(allmusic_url: nil)
+    @media.update!(allmusic_url: nil)
+    fake_service = Struct.new(:album) do
+      def perform
+        { imported_tracks: 0, updated_tracks: 0, lyrics_found: 0 }
+      end
+    end
+    fake_allmusic_result = {
+      success: true,
+      skipped: false,
+      error: nil,
+      parsed: {},
+      credits: []
+    }
+    found_url = "https://www.allmusic.com/album/kind-of-blue-mw0000192322"
+
+    original_new = AlbumEnrichmentService.method(:new)
+    original_search_call = Allmusic::AlbumSearchService.method(:call)
+    original_import_call = Allmusic::ImportAlbumService.method(:call)
+    AlbumEnrichmentService.define_singleton_method(:new) { |album| fake_service.new(album) }
+    Allmusic::AlbumSearchService.define_singleton_method(:call) { |_album| found_url }
+    Allmusic::ImportAlbumService.define_singleton_method(:call) { |_album| fake_allmusic_result }
+
+    begin
+      post load_metadata_album_url(@album)
+    ensure
+      AlbumEnrichmentService.define_singleton_method(:new) { |*args| original_new.call(*args) }
+      Allmusic::AlbumSearchService.define_singleton_method(:call) { |*args| original_search_call.call(*args) }
+      Allmusic::ImportAlbumService.define_singleton_method(:call) { |*args| original_import_call.call(*args) }
+    end
+
+    assert_redirected_to album_url(@album.reload)
+    assert_equal found_url, @album.allmusic_url
+    assert_equal "Album data loaded. Tracks imported: 0, tracks updated: 0, lyrics found: 0. AllMusic credits imported: 0.", flash[:notice]
+  end
+
   test "common user should not load album metadata" do
     post load_metadata_album_url(@album)
 

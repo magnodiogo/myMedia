@@ -1,6 +1,6 @@
 class AlbumsController < ApplicationController
-  before_action :set_album, only: %i[ show load_metadata ]
-  before_action :require_admin!, only: %i[ load_metadata ]
+  before_action :set_album, only: %i[ show load_metadata update_allmusic_url ]
+  before_action :require_admin!, only: %i[ load_metadata update_allmusic_url ]
 
   def show
     @album = Album.includes(:artist, :media_genres, :media_styles, :recording_locations, album_credits: :credit_person, tracks: :track_credits, media: [:media_type, :user_media]).friendly.find(params[:id])
@@ -26,6 +26,14 @@ class AlbumsController < ApplicationController
     end
   end
 
+  def update_allmusic_url
+    if @album.update(album_allmusic_params)
+      redirect_to album_path(@album), notice: "AllMusic album link saved."
+    else
+      redirect_to album_path(@album), alert: @album.errors.full_messages.to_sentence
+    end
+  end
+
   private
 
   def set_album
@@ -38,5 +46,9 @@ class AlbumsController < ApplicationController
 
     allmusic_url = @album.media.where.not(allmusic_url: [nil, ""]).pick(:allmusic_url)
     @album.update!(allmusic_url: allmusic_url) if allmusic_url.present?
+  end
+
+  def album_allmusic_params
+    params.require(:album).permit(:allmusic_url)
   end
 end

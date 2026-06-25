@@ -71,6 +71,30 @@ class AllmusicImportAlbumServiceTest < ActiveSupport::TestCase
     assert album.album_credits.where(person_name: "Andy Fairweather Low", role: "Guitar (Electric)", credit_category: "musician").exists?
   end
 
+  test "searches allmusic album URL from artist and album name" do
+    album = @media.album
+    service = Allmusic::AlbumSearchService.new(album)
+    html = <<~HTML
+      <html>
+        <body>
+          <a href="/album/unrelated-mw0000000001">Unrelated</a>
+          <a href="/album/kind-of-blue-mw0000192322">Kind of Blue</a>
+        </body>
+      </html>
+    HTML
+
+    requested_url = nil
+    service.define_singleton_method(:download_html) do |url|
+      requested_url = url
+      html
+    end
+
+    url = service.call
+
+    assert_equal "https://www.allmusic.com/album/kind-of-blue-mw0000192322", url
+    assert_includes requested_url, "Miles%20Davis%20Kind%20of%20Blue"
+  end
+
   test "does not duplicate existing AllMusic credits or touch other sources" do
     @media.album_credits.create!(person_name: "Eric Clapton", role: "Vocals", source: "allmusic")
     @media.album_credits.create!(person_name: "Old AllMusic Person", role: "Old Role", source: "allmusic")

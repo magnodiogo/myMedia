@@ -75,7 +75,14 @@ class Album < ApplicationRecord
   end
 
   def import_allmusic!
+    find_allmusic_url! if allmusic_url.blank?
     Allmusic::ImportAlbumService.call(self)
+  end
+
+  def find_allmusic_url!
+    found_url = Allmusic::AlbumSearchService.call(self)
+    update!(allmusic_url: found_url) if found_url.present?
+    found_url
   end
 
   def formatted_duration

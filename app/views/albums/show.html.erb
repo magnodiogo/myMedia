@@ -108,6 +108,16 @@
             </div>
           </div>
         <% end %>
+
+        <% if current_user&.admin? %>
+          <div class="spec-notes" style="margin-top: 1rem;">
+            <h3>AllMusic Album Link</h3>
+            <%= form_with model: @album, url: update_allmusic_url_album_path(@album), method: :patch, local: true, style: "display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;" do |form| %>
+              <%= form.url_field :allmusic_url, class: "form-control", placeholder: "https://www.allmusic.com/album/...", style: "min-width: min(100%, 360px); flex: 1;" %>
+              <%= form.submit "Save", class: "btn btn-secondary" %>
+            <% end %>
+          </div>
+        <% end %>
       </div>
     </div>
 
