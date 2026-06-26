@@ -144,4 +144,14 @@ class ArtistTest < ActiveSupport::TestCase
     assert artist.save
     assert artist.banner.attached?
   end
+
+  test "should generate correct initials for different names" do
+    assert_equal "JC", Artist.new(name: "John Coltrane").initials
+    assert_equal "PF", Artist.new(name: "Pink Floyd").initials
+    assert_equal "TB", Artist.new(name: "The Beatles").initials
+    assert_equal "AD", Artist.new(name: "Adele").initials
+    assert_equal "GG", Artist.new(name: "Gilberto Gil").initials
+    assert_equal "", Artist.new(name: "").initials
+    assert_equal "", Artist.new(name: nil).initials
+  end
 end

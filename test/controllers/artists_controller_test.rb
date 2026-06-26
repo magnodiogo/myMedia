@@ -47,11 +47,12 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
   test "common user should see discography and collection tabs" do
     sign_out @admin
     sign_in users(:one)
-    @artist.update!(bio: "Queen biography. " * 40)
+    @artist.update!(bio: "Queen biography. " * 80)
 
     get artist_url(@artist)
 
     assert_response :success
+    assert_select ".tab-link", text: "Info"
     assert_select ".tab-link", text: "Discography"
     assert_select ".tab-link", text: "My Collection"
     assert_select ".read-more-toggle", text: "More", minimum: 1
@@ -83,10 +84,11 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update artist" do
-    patch artist_url(@artist), params: { artist: { name: "Queen Updated", bio: "New bio" } }
+    patch artist_url(@artist), params: { artist: { name: "Queen Updated", bio: "New bio", fun_facts: "Some fun facts" } }
     assert_redirected_to artists_url
     @artist.reload
     assert_equal "Queen Updated", @artist.name
+    assert_equal "Some fun facts", @artist.fun_facts
   end
 
   test "should update artist with banner" do
@@ -270,5 +272,22 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
     post load_discography_artist_url(@artist)
     assert_redirected_to root_url
     assert_equal "Only administrator users can perform this action.", flash[:alert]
+  end
+
+  test "should display styles on biography tab" do
+    style = MediaStyle.create!(name: "Progressive Rock")
+    album = albums(:night_at_the_opera)
+    album.media_styles << style
+
+    get artist_url(@artist)
+    assert_response :success
+    assert_select ".artist-styles-list span", text: "Progressive Rock"
+  end
+
+  test "should show fun facts in show page" do
+    @artist.update!(fun_facts: "<p>They played live in Rio in 1985.</p>")
+    get artist_url(@artist)
+    assert_response :success
+    assert_select ".artist-fun-facts p", text: "They played live in Rio in 1985."
   end
 end

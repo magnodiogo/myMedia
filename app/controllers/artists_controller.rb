@@ -12,6 +12,7 @@ class ArtistsController < ApplicationController
     @albums_by_type = @albums.group_by(&:album_type)
     @media = @artist.media.includes(:album, :media_type).order(title: :asc)
     @collection_items = current_user.user_media.joins(:media).includes(media: [:album, :media_type, { cover_image_attachment: :blob }]).where(media: { artist_id: @artist.id }).order(created_at: :desc) if current_user
+    @styles = @artist.albums.joins(:media_styles).distinct.order("media_styles.name").pluck("media_styles.name")
   end
 
   def new
@@ -79,7 +80,7 @@ class ArtistsController < ApplicationController
   end
 
   def artist_params
-    params.require(:artist).permit(:name, :bio, :photo, :banner)
+    params.require(:artist).permit(:name, :bio, :photo, :banner, :fun_facts)
   end
 
   def resize_uploaded_images
@@ -93,7 +94,7 @@ class ArtistsController < ApplicationController
     if params.dig(:artist, :banner).present?
       uploaded_file = params[:artist][:banner]
       if uploaded_file.respond_to?(:tempfile) && uploaded_file.tempfile.present?
-        system("mogrify -crop '100x70%+0+0' -resize '1600x>' -strip -quality 85 #{uploaded_file.tempfile.path}")
+        system("mogrify -resize '1600x>' -strip -quality 85 #{uploaded_file.tempfile.path}")
       end
     end
   end

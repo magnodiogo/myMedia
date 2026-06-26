@@ -164,8 +164,8 @@ body {
 .main-content {
   margin-left: 280px;
   flex: 1;
-  padding: 3rem;
-  max-width: 1200px;
+  padding: 3rem 5rem;
+  max-width: 100%;
   width: calc(100% - 280px);
   transition: margin-left var(--transition-speed) ease, width var(--transition-speed) ease;
 }
@@ -2473,6 +2473,21 @@ body {
 
 .artist-tabs-card {
   margin-top: 0;
+  min-height: 550px;
+}
+
+.artist-tabs-card .tab-panel {
+  padding: 2.5rem 3.5rem;
+}
+
+.artist-fun-facts p, .artist-fun-facts li {
+  white-space: pre-wrap;
+  tab-size: 4;
+  -moz-tab-size: 4;
+}
+
+.artist-tabs-card .biography-content {
+  max-height: 22rem;
 }
 
 .discography-group + .discography-group {

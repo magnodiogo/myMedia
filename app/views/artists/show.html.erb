@@ -1,17 +1,28 @@
-<div style="position: relative; margin-bottom: 4.5rem;">
-  <div class="artist-banner-wrapper" style="position: relative; width: 100%; height: 340px; overflow: hidden; border-radius: var(--border-radius, 12px); border: 1px solid var(--panel-border); box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+<div style="position: relative; margin-bottom: 2.5rem;">
+  <div class="artist-banner-wrapper" data-controller="banner-color" data-banner-color-target="wrapper" style="position: relative; width: 100%; height: 340px; overflow: hidden; border-radius: var(--border-radius, 12px); border: 1px solid var(--panel-border); box-shadow: 0 8px 32px rgba(0,0,0,0.3); transition: background-color 0.4s ease; background-color: #0b0f19;">
     <% if @artist.banner.attached? %>
-      <!-- Blurred background layer (scales and blurs the same image) -->
-      <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url(<%= rails_blob_path(@artist.banner) %>); background-size: cover; background-position: center; filter: blur(20px) brightness(0.65); transform: scale(1.15); z-index: 1;"></div>
-      
-      <!-- Crisp foreground image centered perfectly -->
-      <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; z-index: 2;">
-        <%= image_tag @artist.banner, style: "max-width: 100%; max-height: 100%; object-fit: contain; display: block;" %>
+      <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: flex-end; z-index: 1;">
+        <%= image_tag @artist.banner, crossorigin: "anonymous", data: { banner_color_target: "image" }, style: "max-width: 100%; max-height: 100%; object-fit: contain; display: block;" %>
       </div>
     <% else %>
       <!-- Fallback elegant gradient -->
       <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #1e1b4b 0%, #3b0764 50%, #030712 100%); z-index: 1;"></div>
     <% end %>
+
+    <!-- Bottom gradient shadow overlay for text readability -->
+    <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 120px; background: linear-gradient(to top, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0) 100%); z-index: 5; pointer-events: none;"></div>
+
+    <!-- Artist name overlay -->
+    <div style="position: absolute; top: 50%; left: 3.5rem; transform: translateY(-50%); z-index: 10;">
+      <h1 class="page-title" style="font-size: 2.8rem; font-weight: 600; color: #ffffff; margin: 0; line-height: 1.1; letter-spacing: -1px; text-shadow: 0 4px 16px rgba(0,0,0,0.65);"><%= @artist.name %></h1>
+    </div>
+
+    <!-- Albums/editions count overlay -->
+    <div style="position: absolute; bottom: 1.5rem; left: 3.5rem; z-index: 10;">
+      <div style="background-color: rgba(99, 102, 241, 0.25); backdrop-filter: blur(12px); border: 1px solid rgba(99, 102, 241, 0.4); color: #e0e7ff; padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 4px 12px rgba(0,0,0,0.35);">
+        💿 <%= pluralize(@albums.count, "album") %> / <%= pluralize(@media.count, "edition") %>
+      </div>
+    </div>
 
     <!-- Action buttons container (z-index 10 to stand above the layers) -->
     <div style="position: absolute; bottom: 1rem; right: 1rem; display: flex; gap: 0.5rem; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(12px); padding: 0.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); z-index: 10;">
@@ -22,45 +33,14 @@
       <a href="<%= artists_path %>" class="btn btn-secondary btn-sm" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Back</a>
     </div>
   </div>
-
-  <div class="artist-avatar-wrapper" style="position: absolute; bottom: -50px; left: 30px; z-index: 15; width: 140px; height: 140px; border-radius: 50%; overflow: hidden; border: 4px solid #0f172a; box-shadow: 0 8px 24px rgba(0,0,0,0.4); background: var(--panel-bg);">
-    <% if @artist.photo.attached? %>
-      <%= image_tag @artist.photo, style: "width: 100%; height: 100%; object-fit: cover;" %>
-    <% else %>
-      <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(168, 85, 247, 0.2) 100%);">
-        <span style="font-size: 3rem; opacity: 0.6;">🎤</span>
-      </div>
-    <% end %>
-  </div>
-</div>
-
-<div class="spec-card-premium" style="margin-bottom: 2.5rem; padding: 2.5rem; background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: var(--border-radius, 12px); backdrop-filter: blur(16px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);">
-  <div class="spec-card-info-side" style="width: 100%; margin: 0;">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--panel-border); padding-bottom: 1.25rem; margin-bottom: 1.5rem;">
-      <div>
-        <h1 class="page-title" style="font-size: 2.2rem; color: #ffffff; margin: 0; font-weight: 800; letter-spacing: -0.5px;"><%= @artist.name %></h1>
-        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem; margin-bottom: 0;">Artist overview, albums, and physical media</p>
-      </div>
-      <div style="background-color: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #a5b4fc; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center;">
-        💿 <%= pluralize(@albums.count, "album") %> / <%= pluralize(@media.count, "edition") %>
-      </div>
-    </div>
-    
-    <div class="artist-biography" data-controller="read-more" data-read-more-collapsed-label-value="More" data-read-more-expanded-label-value="Less">
-      <h3 style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">Biography</h3>
-      <div class="read-more-content biography-content <%= 'is-collapsible' if @artist.bio.present? && @artist.bio.length > 320 %>" data-read-more-target="content">
-        <p style="color: var(--text-main); line-height: 1.6; font-size: 0.95rem; white-space: pre-wrap; margin: 0;"><%= @artist.bio.presence || "No biography provided for this artist." %></p>
-      </div>
-      <% if @artist.bio.present? && @artist.bio.length > 320 %>
-        <button type="button" class="read-more-toggle" data-read-more-target="button" data-action="click->read-more#toggle">More</button>
-      <% end %>
-    </div>
-  </div>
 </div>
 
 <div class="detail-tabs-card artist-tabs-card" data-controller="tabs">
   <div class="tabs-header">
-    <button class="tab-link active" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="discography">
+    <button class="tab-link active" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="biography">
+      Info
+    </button>
+    <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="discography">
       Discography
     </button>
     <% if current_user %>
@@ -68,9 +48,33 @@
         My Collection
       </button>
     <% end %>
+    <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="fun_facts">
+      Fun Facts
+    </button>
   </div>
 
-  <div class="tab-panel" data-tabs-target="panel" data-tab-id="discography">
+  <div class="tab-panel" data-tabs-target="panel" data-tab-id="biography">
+    <% if @styles.any? %>
+      <div class="artist-styles-list" style="margin-bottom: 2rem; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
+        <% @styles.each do |style| %>
+          <span style="background-color: rgba(255, 255, 255, 0.05); border: 1px solid var(--panel-border); color: var(--text-muted); padding: 0.3rem 0.75rem; border-radius: 12px; font-size: 0.8rem; font-weight: 500;">
+            <%= style %>
+          </span>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="artist-biography" data-controller="read-more" data-read-more-collapsed-label-value="More" data-read-more-expanded-label-value="Less">
+      <div class="read-more-content biography-content <%= 'is-collapsible' if @artist.bio.present? && @artist.bio.length > 1200 %>" data-read-more-target="content">
+        <p style="color: var(--text-main); line-height: 1.6; font-size: 0.95rem; white-space: pre-wrap; margin: 0;"><%= @artist.bio.presence || "No biography provided for this artist." %></p>
+      </div>
+      <% if @artist.bio.present? && @artist.bio.length > 1200 %>
+        <button type="button" class="read-more-toggle" data-read-more-target="button" data-action="click->read-more#toggle">More</button>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="tab-panel" data-tabs-target="panel" data-tab-id="discography" style="display: none;">
     <% if @albums_by_type.any? %>
       <% Album.album_types.keys.each do |album_type| %>
         <% albums = Array(@albums_by_type[album_type]) %>
@@ -176,4 +180,14 @@
       <% end %>
     </div>
   <% end %>
+
+  <div class="tab-panel" data-tabs-target="panel" data-tab-id="fun_facts" style="display: none;">
+    <div class="artist-fun-facts" style="color: var(--text-main); line-height: 1.6; font-size: 0.95rem;">
+      <% if @artist.fun_facts.present? %>
+        <%= sanitize(@artist.fun_facts) %>
+      <% else %>
+        <p style="color: var(--text-muted); margin: 0;">No fun facts available for this artist yet.</p>
+      <% end %>
+    </div>
+  </div>
 </div>

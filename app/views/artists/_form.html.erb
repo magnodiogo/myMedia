@@ -21,6 +21,117 @@
   </div>
 
   <div class="form-group">
+    <%= form.label :fun_facts, "Fun Facts", class: "form-label" %>
+    <%= form.hidden_field :fun_facts, id: "artist_fun_facts" %>
+    
+    <!-- Quill Rich Text Editor Assets -->
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+
+    <style>
+      /* Custom Dark Mode styling for Quill to match premium app design */
+      .ql-toolbar.ql-snow {
+        background-color: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(8px);
+        border: 1px solid var(--panel-border) !important;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+      }
+      .ql-container.ql-snow {
+        background-color: var(--panel-bg, #0b0f19);
+        border: 1px solid var(--panel-border) !important;
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+        color: var(--text-main);
+        font-family: inherit;
+        font-size: 0.95rem;
+      }
+      .ql-editor {
+        min-height: 180px;
+        tab-size: 4;
+        -moz-tab-size: 4;
+      }
+      .ql-editor.ql-blank::before {
+        color: var(--text-muted) !important;
+        font-style: normal;
+        opacity: 0.5;
+      }
+      .ql-snow .ql-stroke {
+        stroke: var(--text-muted) !important;
+      }
+      .ql-snow .ql-fill {
+        fill: var(--text-muted) !important;
+      }
+      .ql-snow .ql-picker {
+        color: var(--text-muted) !important;
+      }
+      .ql-snow.ql-toolbar button:hover .ql-stroke,
+      .ql-snow.ql-toolbar button.ql-active .ql-stroke {
+        stroke: var(--accent-primary, #6366f1) !important;
+      }
+      .ql-snow.ql-toolbar button:hover .ql-fill,
+      .ql-snow.ql-toolbar button.ql-active .ql-fill {
+        fill: var(--accent-primary, #6366f1) !important;
+      }
+    </style>
+
+    <div id="fun-facts-editor-wrapper" style="margin-bottom: 1rem;">
+      <div id="fun-facts-editor">
+        <%= raw(artist.fun_facts) %>
+      </div>
+    </div>
+
+    <script>
+      (function() {
+        function initQuill() {
+          const editorDiv = document.getElementById('fun-facts-editor');
+          const hiddenInput = document.getElementById('artist_fun_facts');
+          if (!editorDiv || !hiddenInput) return;
+
+          // Prevent duplicate initialization
+          if (editorDiv.classList.contains('ql-container')) return;
+
+          const quill = new Quill('#fun-facts-editor', {
+            theme: 'snow',
+            placeholder: 'Enter fun facts, bullet points, or trivia about this artist...',
+            modules: {
+              toolbar: [
+                ['bold', 'italic', 'underline'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                ['link', 'clean']
+              ]
+            }
+          });
+
+          // Bind Tab key to insert a tab character
+          quill.keyboard.addBinding({
+            key: 'Tab'
+          }, function(range, context) {
+            quill.insertText(range.index, '\t');
+            quill.setSelection(range.index + 1);
+            return false; // Prevent shifting focus
+          });
+
+          // Update hidden field before submitting form
+          const form = editorDiv.closest('form');
+          if (form) {
+            form.addEventListener('submit', function() {
+              hiddenInput.value = quill.getSemanticHTML();
+            });
+          }
+        }
+
+        // Run on first load and on subsequent turbo page loads
+        document.addEventListener("turbo:load", initQuill);
+        // Also run immediately in case the assets are loaded dynamically
+        if (document.readyState === "complete" || document.readyState === "interactive") {
+          setTimeout(initQuill, 100);
+        }
+      })();
+    </script>
+  </div>
+
+  <div class="form-group">
     <%= form.label :photo, "Artist Photo", class: "form-label" %>
     <% if artist.photo.attached? %>
       <div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem;">

@@ -27,7 +27,7 @@
                 <% if artist.photo.attached? %>
                   <%= image_tag artist.photo, style: "width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" %>
                 <% else %>
-                  <div style="width: 40px; height: 40px; border-radius: 50%; background-color: rgba(255, 255, 255, 0.05); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; border: 1px solid var(--panel-border);">👤</div>
+                  <div style="width: 40px; height: 40px; border-radius: 50%; background-color: rgba(99, 102, 241, 0.15); color: #a5b4fc; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 700; border: 1px solid rgba(99, 102, 241, 0.3);"><%= artist.initials %></div>
                 <% end %>
               </td>
               <td style="font-weight: 600; color: #a5b4fc; vertical-align: middle;">
@@ -54,8 +54,8 @@
                 <% if artist.photo.attached? %>
                   <%= image_tag artist.photo, class: "artist-photo" %>
                 <% else %>
-                  <div class="artist-photo-placeholder">
-                    <span class="placeholder-icon">👤</span>
+                  <div class="artist-photo-placeholder" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(30, 41, 59, 0.8) 100%);">
+                    <span class="placeholder-icon" style="font-weight: 700; color: #a5b4fc; opacity: 0.85; font-size: 2.4rem; letter-spacing: -0.5px;"><%= artist.initials %></span>
                   </div>
                 <% end %>
               </div>

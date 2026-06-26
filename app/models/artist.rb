@@ -83,6 +83,16 @@ class Artist < ApplicationRecord
     { imported: imported, updated: updated, skipped: skipped, error: nil }
   end
 
+  def initials
+    return "" if name.blank?
+    parts = name.strip.split(/\s+/)
+    if parts.length > 1
+      (parts.first[0] + parts.last[0]).upcase
+    else
+      parts.first[0..1].upcase
+    end
+  end
+
   private
 
   MUSICBRAINZ_BASE_URL = "https://musicbrainz.org/ws/2".freeze
