@@ -27,7 +27,7 @@ class CreditPeopleControllerTest < ActionDispatch::IntegrationTest
     assert_select "h1.page-title", text: "Leroy Carr"
     assert_select ".artist-biography", minimum: 1
     assert_select "a[href=?]", @person.wikipedia_url, text: "Wikipedia"
-    assert_select "a[href=?]", @person.allmusic_url, text: "AllMusic"
+    assert_select "a[href=?]", @person.allmusic_url, text: "AllMusic", count: 0
     assert_select ".tab-link", text: "Other Media"
     assert_select ".tab-link", text: "Roles"
     assert_select "h2.media-title", text: @media.album.title

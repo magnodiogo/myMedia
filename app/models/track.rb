@@ -11,6 +11,18 @@ class Track < ApplicationRecord
   validates :disc_number, numericality: { only_integer: true, greater_than: 0 }, allow_blank: true
   validate :media_or_album_present
 
+  def display_order_key
+    natural_position = position.to_s.match(/\A([A-Za-z]*)(\d+)/)
+
+    [
+      disc_number || 1,
+      natural_position&.[](1).to_s,
+      natural_position&.[](2).to_i.nonzero? || track_number || 0,
+      track_number || 0,
+      id || 0
+    ]
+  end
+
   private
 
   def assign_album_from_media

@@ -94,12 +94,12 @@ class MediaControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should show media" do
-    @media.update!(duration_seconds: 3_250)
-    MediaGenre.create!(name: "Pop/Rock").media_genre_links.create!(media: @media)
-    MediaStyle.create!(name: "Album Rock").media_style_links.create!(media: @media)
-    RecordingLocation.create!(name: "British Grove").media_recording_location_links.create!(media: @media)
+    @media.album.update!(duration_seconds: 3_250)
+    AlbumGenreLink.create!(album: @media.album, media_genre: MediaGenre.create!(name: "Pop/Rock"))
+    AlbumStyleLink.create!(album: @media.album, media_style: MediaStyle.create!(name: "Album Rock"))
+    AlbumRecordingLocationLink.create!(album: @media.album, recording_location: RecordingLocation.create!(name: "British Grove"))
     person = CreditPerson.create!(name: "Glyn Johns")
-    @media.album_credits.create!(credit_person: person, person_name: "Glyn Johns", role: "Producer", source: "allmusic")
+    @media.album.album_credits.create!(credit_person: person, person_name: "Glyn Johns", role: "Producer", source: "manual")
 
     get media_url(@media)
 
@@ -119,7 +119,7 @@ class MediaControllerTest < ActionDispatch::IntegrationTest
   test "should get edit" do
     get edit_media_url(@media)
     assert_response :success
-    assert_select "label", text: "AllMusic Album URL"
+    assert_select "label", text: "AllMusic Album URL", count: 0
   end
 
   test "should update media" do
@@ -151,8 +151,6 @@ class MediaControllerTest < ActionDispatch::IntegrationTest
         { person_name: "Glyn Johns", role: "Producer", source: "allmusic" }
       ]
     }
-    allmusic_called_with = nil
-
     fake_enrichment_service = Struct.new(:media) do
       def perform
         true
@@ -160,24 +158,17 @@ class MediaControllerTest < ActionDispatch::IntegrationTest
     end
 
     original_enrichment_new = MediaEnrichmentService.method(:new)
-    original_allmusic_call = Allmusic::ImportAlbumService.method(:call)
     MediaEnrichmentService.define_singleton_method(:new) { |media| fake_enrichment_service.new(media) }
-    Allmusic::ImportAlbumService.define_singleton_method(:call) do |album|
-      allmusic_called_with = album
-      fake_allmusic_result
-    end
 
     begin
       post refresh_metadata_media_url(@media)
     ensure
       MediaEnrichmentService.define_singleton_method(:new) { |*args| original_enrichment_new.call(*args) }
-      Allmusic::ImportAlbumService.define_singleton_method(:call) { |*args| original_allmusic_call.call(*args) }
     end
 
     assert_redirected_to media_url(@media)
-    assert_equal @media.album, allmusic_called_with
-    assert_equal allmusic_url, @media.album.reload.allmusic_url
-    assert_equal "Media information is being updated. AllMusic data imported: 1 credits.", flash[:notice]
+    assert_nil @media.album.reload.allmusic_url
+    assert_equal "Media information is being updated.", flash[:notice]
   end
 
   test "should destroy media" do

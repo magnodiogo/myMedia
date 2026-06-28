@@ -14,6 +14,13 @@ Rails.application.routes.draw do
     end
   end
   resources :albums, only: [:show, :edit, :update] do
+    resources :album_releases, except: [:index, :show] do
+      member do
+        post :try_load_cover
+        post :add_to_collection
+      end
+    end
+
     member do
       post :load_metadata
       patch :update_allmusic_url

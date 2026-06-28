@@ -1,7 +1,7 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">Artists</h1>
-    <p class="page-subtitle">Manage the artists and bands in your collection</p>
+    <p class="page-subtitle">Browse artists and explore their discographies</p>
   </div>
   <% if current_user&.admin? %>
     <a href="<%= new_artist_path %>" class="btn btn-primary">+ Add Artist</a>
@@ -9,6 +9,14 @@
 </div>
 
 <div class="section-box">
+  <%= form_with url: artists_path, method: :get, local: true, style: "display: flex; gap: 0.75rem; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap;" do |form| %>
+    <%= form.search_field :q, value: @query, placeholder: "Search artists", class: "form-control", style: "min-width: min(100%, 320px); flex: 1;" %>
+    <%= form.submit "Search", class: "btn btn-primary" %>
+    <% if @query.present? %>
+      <%= link_to "Clear", artists_path, class: "btn btn-secondary" %>
+    <% end %>
+  <% end %>
+
   <% if @artists.any? %>
     <% if current_user&.admin? %>
       <table class="custom-table">
@@ -66,7 +74,9 @@
       </div>
     <% end %>
   <% else %>
-    <% if current_user&.admin? %>
+    <% if @query.present? %>
+      <p style="color: var(--text-muted); padding: 1rem 0;">No artists found for "<%= @query %>".</p>
+    <% elsif current_user&.admin? %>
       <p style="color: var(--text-muted); padding: 1rem 0;">No artists registered yet. Click "+ Add Artist" to create one.</p>
     <% else %>
       <p style="color: var(--text-muted); padding: 1rem 0;">No artists registered yet.</p>

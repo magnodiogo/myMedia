@@ -7,6 +7,8 @@ class AlbumsController < ApplicationController
     @album = Album.includes(:artist, :media_genres, :media_styles, :recording_locations, album_credits: :credit_person, tracks: :track_credits, media: [:media_type, :user_media]).friendly.find(params[:id])
     @canonical_media = @album.canonical_media
     @tracks = @album.display_tracks
+    @album_releases = @album.album_releases.with_attached_cover_image
+    @owned_album_release_ids = current_user ? current_user.media.where(album: @album).where.not(album_release_id: nil).pluck(:album_release_id) : []
     @album_credits_by_category = @album.album_credits.includes(:credit_person).order(:person_name, :role).group_by(&:credit_category)
     @participant_credits = @album.participant_credits
     @user_media = current_user.user_media.includes(media: [:media_type, { cover_image_attachment: :blob }]).joins(:media).where(media: { album_id: @album.id }).order(created_at: :desc) if current_user
@@ -29,10 +31,7 @@ class AlbumsController < ApplicationController
     if result[:error].present?
       redirect_to album_path(@album), alert: result[:error]
     else
-      allmusic_result = @album.import_allmusic!
       notice = "Album data loaded. Tracks imported: #{result[:imported_tracks]}, tracks updated: #{result[:updated_tracks]}, lyrics found: #{result[:lyrics_found]}."
-      notice += " AllMusic credits imported: #{allmusic_result[:credits].size}." if allmusic_result && !allmusic_result[:skipped] && allmusic_result[:success]
-      notice += " AllMusic import failed: #{allmusic_result[:error]}." if allmusic_result && !allmusic_result[:skipped] && !allmusic_result[:success]
 
       redirect_to album_path(@album), notice: notice
     end
@@ -58,7 +57,6 @@ class AlbumsController < ApplicationController
 
   def set_album
     @album = Album.friendly.find(params[:id])
-    sync_album_allmusic_url
   end
 
   def sync_album_allmusic_url

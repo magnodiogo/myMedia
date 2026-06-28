@@ -91,7 +91,7 @@
           </div>
         </div>
 
-        <% if @album.musicbrainz_release_group_id.present? || @album.wikidata_id.present? || @album.wikipedia_url.present? || @album.allmusic_url.present? %>
+        <% if @album.musicbrainz_release_group_id.present? || @album.wikidata_id.present? || @album.wikipedia_url.present? %>
           <div class="spec-notes">
             <h3>Metadata Sources</h3>
             <div class="collector-notes-content">
@@ -104,20 +104,7 @@
               <% if @album.wikipedia_url.present? %>
                 <p><%= link_to "Wikipedia", @album.wikipedia_url, target: "_blank", rel: "noopener", style: "color: #a5b4fc;" %></p>
               <% end %>
-              <% if @album.allmusic_url.present? %>
-                <p><%= link_to "AllMusic", @album.allmusic_url, target: "_blank", rel: "noopener", style: "color: #a5b4fc;" %></p>
-              <% end %>
             </div>
-          </div>
-        <% end %>
-
-        <% if current_user&.admin? %>
-          <div class="spec-notes" style="margin-top: 1rem;">
-            <h3>AllMusic Album Link</h3>
-            <%= form_with model: @album, url: update_allmusic_url_album_path(@album), method: :patch, local: true, style: "display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;" do |form| %>
-              <%= form.url_field :allmusic_url, class: "form-control", placeholder: "https://www.allmusic.com/album/...", style: "min-width: min(100%, 360px); flex: 1;" %>
-              <%= form.submit "Save", class: "btn btn-secondary" %>
-            <% end %>
           </div>
         <% end %>
       </div>
@@ -126,6 +113,7 @@
     <div class="detail-tabs-card" data-controller="tabs">
       <div class="tabs-header">
         <button class="tab-link active" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="tracks">Tracks</button>
+        <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="releases">Releases</button>
         <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="info">Info</button>
         <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="curiosities">Curiosities</button>
         <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="participants">Participants</button>
@@ -176,6 +164,74 @@
           </div>
         <% else %>
           <p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No tracklist available for this album yet.</p>
+        <% end %>
+      </div>
+
+      <div class="tab-panel" data-tabs-target="panel" data-tab-id="releases" style="display: none;">
+        <div style="display: flex; justify-content: space-between; gap: 1rem; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap;">
+          <div>
+            <h3 style="margin: 0; color: var(--text-main); font-size: 1.1rem;">Known releases</h3>
+            <p style="margin: 0.25rem 0 0; color: var(--text-muted); font-size: 0.9rem;"><%= pluralize(@album_releases.size, "release") %> registered for this album</p>
+          </div>
+          <% if current_user&.admin? %>
+            <%= link_to "Add Release", new_album_album_release_path(@album), class: "btn btn-secondary" %>
+          <% end %>
+        </div>
+
+        <% if @album_releases.any? %>
+          <div class="album-releases-list" style="display: grid; gap: 0.75rem;">
+            <% @album_releases.each do |release| %>
+              <% release_cover = release.display_cover %>
+              <div class="album-release-row" style="display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 1rem; align-items: center; border: 1px solid var(--panel-border); border-radius: 8px; padding: 0.75rem; background-color: rgba(255, 255, 255, 0.025);">
+                <div style="width: 72px;">
+                  <div style="width: 72px; aspect-ratio: 1; border-radius: 6px; overflow: hidden; border: 1px solid var(--panel-border); background-color: rgba(255, 255, 255, 0.04); display: flex; align-items: center; justify-content: center;">
+                    <div class="<%= 'media-card-cover-placeholder' unless release.display_cover_attached? %>" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+                      <% if release.display_cover_attached? %>
+                        <%= image_tag release_cover, style: "width: 100%; height: 100%; object-fit: cover; display: block;" %>
+                      <% else %>
+                        <span class="placeholder-icon" style="font-size: 1.6rem;">💿</span>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="min-width: 0;">
+                  <h4 style="margin: 0 0 0.35rem; color: var(--text-main); font-size: 0.98rem; font-weight: 650; line-height: 1.25;"><%= release.title %></h4>
+                  <div style="display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; color: var(--text-muted); font-size: 0.82rem;">
+                    <span class="media-badge" style="margin: 0;"><%= release.format.presence || "Release" %></span>
+                    <span><%= release.release_year.presence || "Unknown year" %></span>
+                    <% if release.label.present? %>
+                      <span>Label: <%= release.label %></span>
+                    <% end %>
+                    <% if release.catalog_number.present? %>
+                      <span>Catalog: <span class="code-value"><%= release.catalog_number %></span></span>
+                    <% end %>
+                  </div>
+                  <% if release.info.present? %>
+                    <p style="margin: 0.45rem 0 0; color: var(--text-muted); font-size: 0.82rem; line-height: 1.35;"><%= release.info %></p>
+                  <% end %>
+                </div>
+
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end; align-items: center;">
+                  <% if current_user %>
+                    <% if !release.physical? %>
+                      <span class="btn btn-secondary btn-sm" style="pointer-events: none; opacity: 0.65;">Digital</span>
+                    <% elsif @owned_album_release_ids.include?(release.id) %>
+                      <span class="btn btn-secondary btn-sm" style="pointer-events: none; opacity: 0.75;">In My Collection</span>
+                    <% else %>
+                      <%= button_to "Add", add_to_collection_album_album_release_path(@album, release), method: :post, class: "btn btn-primary btn-sm" %>
+                    <% end %>
+                  <% end %>
+                  <% if current_user&.admin? %>
+                    <%= link_to "Edit", edit_album_album_release_path(@album, release), class: "btn btn-secondary btn-sm" %>
+                    <%= button_to "Cover", try_load_cover_album_album_release_path(@album, release), method: :post, class: "btn btn-secondary btn-sm" %>
+                  <% end %>
+                  </div>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No releases registered for this album yet.</p>
         <% end %>
       </div>
 

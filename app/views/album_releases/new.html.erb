@@ -1,0 +1,10 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">New Release</h1>
+    <p class="page-subtitle"><%= @album.title %> by <%= @album.artist.name %></p>
+  </div>
+</div>
+
+<div class="section-box">
+  <%= render "form", album: @album, album_release: @album_release %>
+</div>

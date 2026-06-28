@@ -1,0 +1,62 @@
+<%= form_with(model: [album, album_release], local: true) do |form| %>
+  <% if album_release.errors.any? %>
+    <div class="error-messages">
+      <h2><%= pluralize(album_release.errors.count, "error") %> prohibited this release from being saved:</h2>
+      <ul>
+        <% album_release.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-group">
+    <%= form.label :cover_image, "Release Cover", class: "form-label" %>
+    <%= form.file_field :cover_image, class: "form-control" %>
+    <% if album_release.cover_image.attached? %>
+      <div style="margin-top: 0.5rem;">
+        <%= image_tag album_release.cover_image, style: "max-width: 120px; border-radius: 4px;" %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :title, "Release Title", class: "form-label" %>
+    <%= form.text_field :title, class: "form-control", placeholder: album.title %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :release_year, "Release Year", class: "form-label" %>
+    <%= form.number_field :release_year, class: "form-control", placeholder: "e.g., 2007" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :format, "Format", class: "form-label" %>
+    <%= form.text_field :format, class: "form-control", placeholder: "e.g., CD, LP, Digital" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :label, "Label", class: "form-label" %>
+    <%= form.text_field :label, class: "form-control", placeholder: "e.g., Capitol / EMI Records" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :catalog_number, "Catalog Number", class: "form-label" %>
+    <%= form.text_field :catalog_number, class: "form-control", placeholder: "e.g., 5039192" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :position, "Display Position", class: "form-label" %>
+    <%= form.number_field :position, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :info, "Release Details", class: "form-label" %>
+    <%= form.text_area :info, rows: 5, class: "form-control", placeholder: "Add notes about remastering, packaging, mono/stereo version, country, or other details..." %>
+  </div>
+
+  <div class="form-actions">
+    <%= link_to "Cancel", album_path(album), class: "btn btn-secondary" %>
+    <%= form.submit "Save Release", class: "btn btn-primary" %>
+  </div>
+<% end %>

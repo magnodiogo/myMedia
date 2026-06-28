@@ -18,6 +18,28 @@ class AlbumTest < ActiveSupport::TestCase
     assert_equal artists(:queen), album.primary_artist
   end
 
+  test "display tracks should sort vinyl side positions naturally" do
+    album = albums(:night_at_the_opera)
+    medium = media(:one)
+    album.tracks.destroy_all
+
+    [
+      ["B1", 1, "Side B Opener"],
+      ["A2", 2, "Side A Second"],
+      ["A1", 1, "Side A Opener"],
+      ["B2", 2, "Side B Second"]
+    ].each do |position, track_number, title|
+      album.tracks.create!(
+        media: medium,
+        position: position,
+        track_number: track_number,
+        title: title
+      )
+    end
+
+    assert_equal ["A1", "A2", "B1", "B2"], album.display_tracks.map(&:position)
+  end
+
   test "should be invalid without title" do
     album = Album.new(artist: artists(:queen))
 

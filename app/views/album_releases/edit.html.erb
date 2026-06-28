@@ -1,0 +1,11 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Edit Release</h1>
+    <p class="page-subtitle"><%= @album.title %> by <%= @album.artist.name %></p>
+  </div>
+  <%= button_to "Delete Release", album_album_release_path(@album, @album_release), method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-danger" %>
+</div>
+
+<div class="section-box">
+  <%= render "form", album: @album, album_release: @album_release %>
+</div>

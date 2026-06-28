@@ -32,8 +32,19 @@ class MediaController < ApplicationController
 
 
   def show
-    @media = Media.includes(:album, :media_genres, :media_styles, :recording_locations, album_credits: :credit_person, tracks: :track_credits).friendly.find(params[:id])
-    @album_credits_by_category = @media.album_credits.includes(:credit_person).order(:person_name, :role).group_by(&:credit_category)
+    @media = Media.includes(
+      :album_release,
+      :media_type,
+      :artist,
+      album: [:media_genres, :media_styles, :recording_locations, { album_credits: :credit_person }, { tracks: :track_credits }],
+      album_credits: :credit_person,
+      tracks: :track_credits
+    ).friendly.find(params[:id])
+    @album_record = @media.album
+    @display_tracks = @album_record&.display_tracks.presence || @media.tracks.includes(:track_credits)
+    @display_credits = @album_record&.album_credits || @media.album_credits
+    @album_credits_by_category = @display_credits.includes(:credit_person).order(:person_name, :role).group_by(&:credit_category)
+    @display_cover = @media.cover_image.attached? ? @media.cover_image : (@media.album_release&.display_cover || @album_record&.cover_image)
     @user_media = current_user.user_media.find_or_initialize_by(media: @media) if current_user
   end
 
@@ -166,14 +177,8 @@ class MediaController < ApplicationController
 
   def refresh_metadata
     MediaEnrichmentService.new(@media).perform
-    allmusic_result = import_allmusic_metadata
 
     notice = "Media information is being updated."
-    if allmusic_result && !allmusic_result[:skipped] && allmusic_result[:success]
-      notice += " AllMusic data imported: #{allmusic_result[:credits].size} credits."
-    elsif allmusic_result && !allmusic_result[:skipped] && !allmusic_result[:success]
-      notice += " AllMusic import failed: #{allmusic_result[:error]}."
-    end
 
     redirect_to @media, notice: notice
   end

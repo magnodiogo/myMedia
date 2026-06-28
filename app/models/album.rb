@@ -24,6 +24,7 @@ class Album < ApplicationRecord
   belongs_to :artist
 
   has_many :media, dependent: :restrict_with_error
+  has_many :album_releases, -> { ordered }, dependent: :destroy
   has_many :tracks, -> { order(:disc_number, :track_number) }, dependent: :destroy
   has_many :album_credits, dependent: :destroy
   has_many :credit_people, through: :album_credits
@@ -69,7 +70,7 @@ class Album < ApplicationRecord
   end
 
   def display_tracks
-    tracks.includes(:track_credits).order(:disc_number, :track_number)
+    tracks.includes(:track_credits).to_a.sort_by(&:display_order_key)
   end
 
   def participant_credits

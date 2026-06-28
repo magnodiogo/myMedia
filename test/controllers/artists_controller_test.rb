@@ -15,6 +15,29 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
     assert_select "h1.page-title", text: "Artists"
   end
 
+  test "common user should get artists index and search artists" do
+    sign_out @admin
+    sign_in users(:one)
+
+    get artists_url, params: { q: "Queen" }
+
+    assert_response :success
+    assert_select "input[name='q'][value='Queen']"
+    assert_select ".artist-name", text: "Queen"
+    assert_select ".artist-name", text: "Miles Davis", count: 0
+    assert_select "a[href=?]", artist_path(@artist)
+  end
+
+  test "common user should see no artist search results message" do
+    sign_out @admin
+    sign_in users(:one)
+
+    get artists_url, params: { q: "No Such Artist" }
+
+    assert_response :success
+    assert_select "p", text: 'No artists found for "No Such Artist".'
+  end
+
   test "should get new" do
     get new_artist_url
     assert_response :success

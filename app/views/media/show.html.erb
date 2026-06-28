@@ -1,6 +1,6 @@
 <div class="media-detail-container" data-controller="lyrics-modal">
-  <% if @media.cover_image.attached? %>
-    <div class="media-detail-backdrop" style="background-image: url('<%= rails_blob_path(@media.cover_image) %>');"></div>
+  <% if @display_cover&.attached? %>
+    <div class="media-detail-backdrop" style="background-image: url('<%= rails_blob_path(@display_cover) %>');"></div>
   <% end %>
 
   <div class="media-detail-content-wrapper">
@@ -25,9 +25,9 @@
 
     <div class="spec-card-premium">
       <div class="spec-card-cover-side">
-        <% if @media.cover_image.attached? %>
+        <% if @display_cover&.attached? %>
           <div class="detail-cover-wrapper">
-            <%= image_tag @media.cover_image, class: "detail-cover" %>
+            <%= image_tag @display_cover, class: "detail-cover" %>
           </div>
         <% else %>
           <div class="detail-cover-placeholder">
@@ -74,22 +74,22 @@
 
           <div class="spec-item">
             <span class="spec-label">Duration</span>
-            <span class="spec-value"><%= @media.formatted_duration.presence || "Unknown" %></span>
+            <span class="spec-value"><%= @album_record&.formatted_duration.presence || @media.formatted_duration.presence || "Unknown" %></span>
           </div>
 
           <div class="spec-item">
             <span class="spec-label">Genre</span>
-            <span class="spec-value"><%= @media.media_genres.map(&:name).join(", ").presence || "Unknown" %></span>
+            <span class="spec-value"><%= @album_record&.media_genres&.map(&:name)&.join(", ").presence || "Unknown" %></span>
           </div>
 
           <div class="spec-item">
             <span class="spec-label">Styles</span>
-            <span class="spec-value"><%= @media.media_styles.map(&:name).join(", ").presence || "Unknown" %></span>
+            <span class="spec-value"><%= @album_record&.media_styles&.map(&:name)&.join(", ").presence || "Unknown" %></span>
           </div>
 
           <div class="spec-item">
             <span class="spec-label">Recording Location</span>
-            <span class="spec-value"><%= @media.recording_locations.map(&:name).join(", ").presence || "Unknown" %></span>
+            <span class="spec-value"><%= @album_record&.recording_locations&.map(&:name)&.join(", ").presence || "Unknown" %></span>
           </div>
         </div>
 
@@ -139,7 +139,31 @@
             </div>
             
             <div id="tracks_list" style="display: table-row-group;">
-              <%= render partial: "tracks/track", collection: @media.tracks, as: :track, locals: { media: @media } %>
+              <% @display_tracks.each do |track| %>
+                <div class="track-row" style="display: table-row;">
+                  <div style="display: table-cell; vertical-align: middle; padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.03);"><%= track.position.presence || track.track_number %></div>
+                  <div style="display: table-cell; vertical-align: middle; padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.03);">
+                    <div><%= track.title %></div>
+                    <% composer_credits = track.track_credits.select { |credit| AlbumCredit.category_for_role(credit.function) == "composer" } %>
+                    <% if composer_credits.any? %>
+                      <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+                        <%= composer_credits.map { |credit| "#{credit.function}: #{credit.name}" }.join(", ") %>
+                      </div>
+                    <% end %>
+                  </div>
+                  <div style="display: table-cell; vertical-align: middle; padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.03); text-align: right;"><%= track.duration.presence || "--:--" %></div>
+                  <div style="display: table-cell; vertical-align: middle; padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.03); text-align: right;">
+                    <% if current_user&.admin? && track.media.present? %>
+                      <a href="#" class="btn btn-secondary btn-sm" data-action="click->lyrics-modal#open" data-url="<%= edit_lyrics_media_track_path(track.media, track) %>" data-track-title="<%= track.title %>">Lyrics</a>
+                    <% elsif track.lyrics.present? %>
+                      <% lyrics_url = track.media.present? ? show_lyrics_media_track_path(track.media, track) : show_lyrics_album_track_path(@album_record, track) %>
+                      <a href="#" class="btn btn-secondary btn-sm" data-action="click->lyrics-modal#open" data-url="<%= lyrics_url %>" data-track-title="<%= track.title %>">Lyrics</a>
+                    <% else %>
+                      <span style="color: var(--text-muted); font-size: 0.85rem;">Not available</span>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
             </div>
           </div>
         </div>
@@ -165,7 +189,7 @@
       </div>
 
       <div class="tab-panel" data-tabs-target="panel" data-tab-id="credits" style="display: none;">
-        <% if @media.album_credits.any? %>
+        <% if @display_credits.any? %>
           <% [
             ["Musicians", @album_credits_by_category["musician"]],
             ["Production & Artwork", @album_credits_by_category["technical"]]

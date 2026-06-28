@@ -43,6 +43,9 @@
     <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="discography">
       Discography
     </button>
+    <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="collection_progress">
+      Collection Progress
+    </button>
     <% if current_user %>
       <button class="tab-link" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-id="collection">
         My Collection
@@ -128,6 +131,10 @@
     <% else %>
       <p style="color: var(--text-muted); padding: 2rem 0; text-align: center;">No discography loaded for this artist yet.</p>
     <% end %>
+  </div>
+
+  <div class="tab-panel" data-tabs-target="panel" data-tab-id="collection_progress" style="display: none;">
+    <%= render "collection_progress", collection_progress: @collection_progress, artist_era_progress: @artist_era_progress %>
   </div>
 
   <% if current_user %>

@@ -7,6 +7,7 @@ class Media < ApplicationRecord
   belongs_to :media_type
   belongs_to :artist
   belongs_to :album
+  belongs_to :album_release, optional: true
   has_one_attached :cover_image
 
   has_many :user_media, class_name: "UserMedia", dependent: :destroy
@@ -20,6 +21,8 @@ class Media < ApplicationRecord
   has_many :media_styles, through: :media_style_links
   has_many :media_recording_location_links, dependent: :destroy
   has_many :recording_locations, through: :media_recording_location_links
+  has_many :collection_list_items, dependent: :destroy
+  has_many :collection_lists, through: :collection_list_items
 
 
   attr_accessor :cover_url

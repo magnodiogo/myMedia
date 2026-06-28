@@ -4,7 +4,12 @@ class ArtistsController < ApplicationController
   before_action :resize_uploaded_images, only: %i[ create update ]
 
   def index
-    @artists = Artist.with_attached_photo.all.order(:name)
+    @query = params[:q].to_s.strip
+    @artists = Artist.with_attached_photo.all
+    if @query.present?
+      @artists = @artists.where("name ILIKE :query OR bio ILIKE :query", query: "%#{@query}%")
+    end
+    @artists = @artists.order(:name)
   end
 
   def show
@@ -13,6 +18,8 @@ class ArtistsController < ApplicationController
     @media = @artist.media.includes(:album, :media_type).order(title: :asc)
     @collection_items = current_user.user_media.joins(:media).includes(media: [:album, :media_type, { cover_image_attachment: :blob }]).where(media: { artist_id: @artist.id }).order(created_at: :desc) if current_user
     @styles = @artist.albums.joins(:media_styles).distinct.order("media_styles.name").pluck("media_styles.name")
+    @collection_progress = CollectionProgressCalculator.for_artist(@artist, user: current_user)
+    @artist_era_progress = CollectionProgressAnalytics.progress_for_artist_eras(@artist, user: current_user)
   end
 
   def new

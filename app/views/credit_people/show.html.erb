@@ -43,15 +43,12 @@
       <% end %>
     </div>
 
-    <% if @credit_person.wikipedia_url.present? || @credit_person.allmusic_url.present? %>
+    <% if @credit_person.wikipedia_url.present? %>
       <div class="spec-notes" style="margin-top: 1.5rem;">
         <h3>External Sources</h3>
         <div class="collector-notes-content">
           <% if @credit_person.wikipedia_url.present? %>
             <p><%= link_to "Wikipedia", @credit_person.wikipedia_url, target: "_blank", rel: "noopener", style: "color: #a5b4fc;" %></p>
-          <% end %>
-          <% if @credit_person.allmusic_url.present? %>
-            <p><%= link_to "AllMusic", @credit_person.allmusic_url, target: "_blank", rel: "noopener", style: "color: #a5b4fc;" %></p>
           <% end %>
         </div>
       </div>
