@@ -37,9 +37,10 @@ class ArtistEraTest < ActiveSupport::TestCase
     assert_includes artist_era.errors[:starts_on], "must be before or equal to ends on"
   end
 
-  test "should determine media membership from release year" do
+  test "should determine media membership from album release year before edition release year" do
     medium = media(:one)
-    medium.update!(release_year: 1975)
+    medium.album.update!(release_year: 1975)
+    medium.update!(release_year: 2026)
     artist_era = ArtistEra.create!(
       artist: @artist,
       name: "Mid Seventies",
@@ -49,7 +50,7 @@ class ArtistEraTest < ActiveSupport::TestCase
 
     assert artist_era.includes_media?(medium)
 
-    medium.update!(release_year: 1977)
+    medium.album.update!(release_year: 1977)
     assert_not artist_era.includes_media?(medium)
   end
 end

@@ -40,6 +40,49 @@ class AlbumTest < ActiveSupport::TestCase
     assert_equal ["A1", "A2", "B1", "B2"], album.display_tracks.map(&:position)
   end
 
+  test "display tracks should prefer album tracklist over physical media tracks" do
+    album = albums(:night_at_the_opera)
+    medium = media(:one)
+    album.tracks.destroy_all
+
+    album.tracks.create!(
+      position: "A1",
+      track_number: 1,
+      title: "Canonical Opener"
+    )
+    medium.tracks.create!(
+      position: "A1",
+      track_number: 1,
+      title: "Physical Copy Opener"
+    )
+
+    assert_equal ["Canonical Opener"], album.display_tracks.map(&:title)
+  end
+
+  test "display cover should prefer original release cover over physical media cover" do
+    album = albums(:night_at_the_opera)
+    medium = media(:one)
+    album.update!(release_year: 1975)
+
+    release = album.album_releases.create!(
+      title: "A Night at the Opera",
+      release_year: 1975,
+      media_type: MediaType.for_release_format("LP")
+    )
+    release.cover_image.attach(
+      io: File.open(Rails.root.join("db/seeds/images/dark_side_cover.png")),
+      filename: "origin_cover.png",
+      content_type: "image/png"
+    )
+    medium.cover_image.attach(
+      io: File.open(Rails.root.join("db/seeds/images/dark_side_cover.png")),
+      filename: "physical_cover.png",
+      content_type: "image/png"
+    )
+
+    assert_equal release.cover_image.blob, album.display_cover.blob
+  end
+
   test "should be invalid without title" do
     album = Album.new(artist: artists(:queen))
 

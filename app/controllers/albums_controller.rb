@@ -7,7 +7,7 @@ class AlbumsController < ApplicationController
     @album = Album.includes(:artist, :media_genres, :media_styles, :recording_locations, album_credits: :credit_person, tracks: :track_credits, media: [:media_type, :user_media]).friendly.find(params[:id])
     @canonical_media = @album.canonical_media
     @tracks = @album.display_tracks
-    @album_releases = @album.album_releases.with_attached_cover_image
+    @album_releases = @album.album_releases.includes(:media_type).with_attached_cover_image
     @owned_album_release_ids = current_user ? current_user.media.where(album: @album).where.not(album_release_id: nil).pluck(:album_release_id) : []
     @album_credits_by_category = @album.album_credits.includes(:credit_person).order(:person_name, :role).group_by(&:credit_category)
     @participant_credits = @album.participant_credits
@@ -15,12 +15,14 @@ class AlbumsController < ApplicationController
   end
 
   def edit
+    build_album_release_rows
   end
 
   def update
     if @album.update(album_params)
       redirect_to album_path(@album), notice: "Album was successfully updated."
     else
+      build_album_release_rows
       render :edit, status: :unprocessable_entity
     end
   end
@@ -75,8 +77,17 @@ class AlbumsController < ApplicationController
       :title, :release_year, :original_release_date, :album_type,
       :formatted_duration, :summary, :allmusic_url,
       :genre_names, :style_names, :recording_location_names,
-      :cover_image, :manual_credits_text, :metadata_status
+      :cover_image, :manual_credits_text, :metadata_status, :fun_facts,
+      album_releases_attributes: [
+        :id, :title, :release_year, :media_type_id, :label, :catalog_number,
+        :allmusic_url, :info, :position, :cover_image, :_destroy
+      ]
     )
+  end
+
+  def build_album_release_rows
+    blanks_needed = [3 - @album.album_releases.reject(&:persisted?).size, 0].max
+    blanks_needed.times { @album.album_releases.build(position: @album.album_releases.size) }
   end
 
   def resize_uploaded_cover

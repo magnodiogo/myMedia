@@ -21,6 +21,26 @@ class CreditPerson < ApplicationRecord
     name
   end
 
+  def birth_summary
+    life_event_summary("Born", birth_date, birth_place, age)
+  end
+
+  def death_summary
+    life_event_summary("Died", death_date, death_place, age_at_death)
+  end
+
+  def age
+    return nil if birth_date.blank? || death_date.present?
+
+    age_on(Date.current)
+  end
+
+  def age_at_death
+    return nil if birth_date.blank? || death_date.blank?
+
+    age_on(death_date)
+  end
+
   def update_bio_from_wikipedia
     summary_data = fetch_wikipedia_summary_candidates(require_extract: true)
     return false if summary_data.blank? || summary_data["extract"].blank?
@@ -95,6 +115,26 @@ class CreditPerson < ApplicationRecord
   end
 
   private
+
+  def life_event_summary(label, date, place, age_value)
+    details = [formatted_life_date(date), place.presence].compact.join(", ")
+    return nil if details.blank?
+
+    summary = "#{label}: #{details}"
+    summary += " (#{age_value})" if age_value.present? 
+    summary
+  end
+
+  def formatted_life_date(date)
+    date&.strftime("%B %-d, %Y")
+  end
+
+  def age_on(date)
+    years = date.year - birth_date.year
+    had_birthday = date.month > birth_date.month || (date.month == birth_date.month && date.day >= birth_date.day)
+    years -= 1 unless had_birthday
+    years
+  end
 
   def fetch_wikipedia_summary_candidates(require_extract: false)
     wikipedia_title_candidates.each do |candidate|

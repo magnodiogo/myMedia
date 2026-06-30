@@ -12,9 +12,10 @@ class Artist < ApplicationRecord
   has_one_attached :photo
   has_one_attached :banner
 
-  attr_accessor :photo_url
+  attr_accessor :photo_url, :banner_url
 
   before_save :download_photo_from_url, if: -> { photo_url.present? }
+  before_save :download_banner_from_url, if: -> { banner_url.present? }
 
   validates :name, presence: true, uniqueness: { case_sensitive: false }
 
@@ -50,6 +51,21 @@ class Artist < ApplicationRecord
     else
       false
     end
+  end
+
+  def update_banner_from_wikipedia
+    image_url = fetch_wikipedia_image_url(name, "en")
+
+    if image_url.nil?
+      image_url = fetch_wikipedia_image_url(name, "pt")
+    end
+
+    return false if image_url.blank?
+
+    previous_banner_blob_id = banner.blob&.id
+    self.banner_url = image_url
+    save
+    banner.attached? && banner.blob&.id != previous_banner_blob_id
   end
 
   def load_discography
@@ -303,6 +319,26 @@ class Artist < ApplicationRecord
       File.delete(temp_path) if File.exist?(temp_path)
     rescue => e
       Rails.logger.error("Failed to download artist photo from URL #{url}: #{e.message}")
+    end
+  end
+
+  def download_banner_from_url
+    url = banner_url
+    self.banner_url = nil
+
+    begin
+      file = URI.open(url, "User-Agent" => "myMedia/1.0", ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE, open_timeout: 5, read_timeout: 5)
+
+      temp_path = Rails.root.join("tmp", "artist-banner-#{SecureRandom.hex(8)}.jpg")
+      File.open(temp_path, "wb") { |f| f.write(file.read) }
+
+      system("mogrify -resize '1600x340^' -gravity center -extent 1600x340 -strip -quality 85 #{temp_path}")
+
+      banner.attach(io: File.open(temp_path), filename: "artist-banner-#{SecureRandom.hex(8)}.jpg", content_type: "image/jpeg")
+
+      File.delete(temp_path) if File.exist?(temp_path)
+    rescue => e
+      Rails.logger.error("Failed to download artist banner from URL #{url}: #{e.message}")
     end
   end
 end

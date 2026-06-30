@@ -4,11 +4,13 @@ require "json"
 
 class AlbumRelease < ApplicationRecord
   belongs_to :album
+  belongs_to :media_type, optional: true
   has_many :media, dependent: :nullify
   has_one_attached :cover_image
 
   validates :album, presence: true
   validates :title, presence: true
+  validates :media_type, presence: true, unless: :marked_for_destruction?
   validates :release_year,
             numericality: {
               only_integer: true,
@@ -42,7 +44,7 @@ class AlbumRelease < ApplicationRecord
   end
 
   def physical?
-    format.to_s.strip.downcase != "digital"
+    media_type&.name.to_s.strip.downcase != "digital"
   end
 
   def to_media
@@ -52,11 +54,12 @@ class AlbumRelease < ApplicationRecord
     medium.assign_attributes(
       album: album,
       artist: album.artist,
-      media_type: MediaType.for_release_format(format),
+      media_type: media_type,
       title: title,
       release_year: release_year,
       catalog_number: catalog_number,
-      notes: info
+      notes: info,
+      allmusic_url: allmusic_url
     )
 
     if cover_image.attached? && !medium.cover_image.attached?

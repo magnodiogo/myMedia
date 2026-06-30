@@ -7,11 +7,15 @@ class AlbumReleasesControllerTest < ActionDispatch::IntegrationTest
     @album = albums(:kind_of_blue)
     @admin = users(:two)
     @common_user = users(:one)
+    @cd = media_types(:one)
+    @cassette = media_types(:two)
+    @lp = MediaType.for_release_format("LP")
+    @digital = MediaType.for_release_format("Digital")
     @release = AlbumRelease.create!(
       album: @album,
       title: "Kind of Blue",
       release_year: 1959,
-      format: "LP",
+      media_type: @lp,
       label: "Columbia",
       catalog_number: "CL 1355",
       info: "Original mono LP release."
@@ -26,7 +30,7 @@ class AlbumReleasesControllerTest < ActionDispatch::IntegrationTest
         album_release: {
           title: "Kind of Blue Legacy Edition",
           release_year: 1997,
-          format: "CD",
+          media_type_id: @cd.id,
           label: "Columbia / Legacy",
           catalog_number: "CK 64935",
           info: "Remastered CD release."
@@ -45,7 +49,7 @@ class AlbumReleasesControllerTest < ActionDispatch::IntegrationTest
       album_release: {
         title: "Kind of Blue Updated",
         release_year: 1960,
-        format: "CD"
+        media_type_id: @cd.id
       }
     }
 
@@ -102,7 +106,7 @@ class AlbumReleasesControllerTest < ActionDispatch::IntegrationTest
     assert_equal @release.release_year, medium.release_year
     assert_equal @release.catalog_number, medium.catalog_number
     assert_equal @release.info, medium.notes
-    assert_equal MediaType.for_release_format(@release.format), medium.media_type
+    assert_equal @release.media_type, medium.media_type
     assert @common_user.media.exists?(medium.id)
   end
 
@@ -112,7 +116,7 @@ class AlbumReleasesControllerTest < ActionDispatch::IntegrationTest
       album: @album,
       title: "Kind of Blue Digital",
       release_year: 2011,
-      format: "Digital"
+      media_type: @digital
     )
 
     assert_no_difference(["Media.count", "UserMedia.count"]) do

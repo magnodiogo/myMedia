@@ -118,4 +118,90 @@ class AlbumEnrichmentServiceTest < ActiveSupport::TestCase
       original_get_json.call(*args)
     end
   end
+
+  test "prefers original release tracklist and removes stale album tracks" do
+    @album.tracks.create!(
+      title: "Bonus Outtake",
+      disc_number: 2,
+      track_number: 1,
+      position: "1",
+      musicbrainz_recording_id: "recording-bonus"
+    )
+
+    service = AlbumEnrichmentService.new(@album)
+
+    http_stub = lambda do |uri, _headers|
+      case [uri.host, uri.path]
+      when ["musicbrainz.org", "/ws/2/release-group/rg-kind-of-blue"]
+        {
+          "id" => "rg-kind-of-blue",
+          "title" => "Kind of Blue",
+          "primary-type" => "Album",
+          "secondary-types" => [],
+          "first-release-date" => "1959-08-17",
+          "relations" => []
+        }
+      when ["musicbrainz.org", "/ws/2/release"]
+        {
+          "releases" => [
+            {
+              "id" => "release-deluxe",
+              "status" => "Official",
+              "date" => "2020",
+              "title" => "Kind of Blue",
+              "artist-credit" => [{ "artist" => { "name" => "Miles Davis" } }],
+              "media" => [
+                {
+                  "position" => 1,
+                  "tracks" => [
+                    { "number" => "1", "recording" => { "id" => "recording-deluxe-1", "title" => "So What" } },
+                    { "number" => "2", "recording" => { "id" => "recording-deluxe-2", "title" => "Freddie Freeloader" } },
+                    { "number" => "3", "recording" => { "id" => "recording-deluxe-3", "title" => "Studio Sequence" } }
+                  ]
+                }
+              ]
+            },
+            {
+              "id" => "release-original",
+              "status" => "Official",
+              "date" => "1959-08-17",
+              "title" => "Kind of Blue",
+              "artist-credit" => [{ "artist" => { "name" => "Miles Davis" } }],
+              "media" => [
+                {
+                  "position" => 1,
+                  "tracks" => [
+                    { "number" => "1", "recording" => { "id" => "recording-original-1", "title" => "So What" } },
+                    { "number" => "2", "recording" => { "id" => "recording-original-2", "title" => "Freddie Freeloader" } }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      when ["lrclib.net", "/api/get"]
+        {}
+      else
+        raise "Unexpected request: #{uri}"
+      end
+    end
+
+    original_get_json = AlbumEnrichmentService::HttpClient.method(:get_json)
+    AlbumEnrichmentService::HttpClient.define_singleton_method(:get_json, &http_stub)
+    service.define_singleton_method(:cover_art_url) { |_release_group_id| nil }
+
+    result = service.perform
+
+    assert_nil result[:error]
+    assert_equal 2, result[:imported_tracks]
+
+    @album.reload
+    assert_equal ["So What", "Freddie Freeloader"], @album.display_tracks.map(&:title)
+    assert_nil @album.tracks.find_by(title: "Bonus Outtake")
+    assert_nil @album.tracks.find_by(musicbrainz_recording_id: "recording-deluxe-3")
+  ensure
+    AlbumEnrichmentService::HttpClient.define_singleton_method(:get_json) do |*args|
+      original_get_json.call(*args)
+    end
+  end
 end

@@ -37,7 +37,9 @@ Rails.application.routes.draw do
     member do
       post :update_wiki
       post :update_photo
+      post :update_banner
       post :load_discography
+      post :load_album_data
     end
   end
   resources :user_media, only: [:create, :update]

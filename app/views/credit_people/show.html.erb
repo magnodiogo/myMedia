@@ -27,7 +27,19 @@
 
   <div class="spec-card-info-side" style="margin-top: 0.5rem;">
     <div class="spec-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-      <h2 style="font-size: 1.6rem; color: #a5b4fc; margin: 0;"><%= @credit_person.name %></h2>
+      <div>
+        <h2 style="font-size: 1.6rem; color: #a5b4fc; margin: 0;"><%= @credit_person.name %></h2>
+        <% if @credit_person.birth_summary.present? || @credit_person.death_summary.present? %>
+          <div style="margin-top: 0.35rem; color: var(--text-muted); font-size: 0.85rem; line-height: 1.45;">
+            <% if @credit_person.birth_summary.present? %>
+              <div><%= @credit_person.birth_summary %></div>
+            <% end %>
+            <% if @credit_person.death_summary.present? %>
+              <div><%= @credit_person.death_summary %></div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
       <div style="background-color: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #a5b4fc; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
         <%= pluralize(@credits_by_media.size + @credits_by_album.size, "media item") %> credited
       </div>

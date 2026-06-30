@@ -128,6 +128,31 @@ class MediaTest < ActiveSupport::TestCase
     end
   end
 
+  test "should copy downloaded physical media cover to source release when release has no cover" do
+    album = albums(:kind_of_blue)
+    release = AlbumRelease.create!(
+      album: album,
+      title: "Kind of Blue Cassette",
+      release_year: 1994,
+      media_type: media_types(:two)
+    )
+    media = Media.create!(
+      media_type: @media_type,
+      album: album,
+      album_release: release,
+      title: release.title,
+      artist: album.artist
+    )
+
+    URI.stub :open, ->(*_a) { File.open(Rails.root.join('db/seeds/images/dark_side_cover.png')) } do
+      media.update!(cover_url: "https://example.com/kind_of_blue_cassette.jpg")
+    end
+
+    assert media.cover_image.attached?
+    assert release.reload.cover_image.attached?
+    assert_equal media.cover_image.blob, release.cover_image.blob
+  end
+
   test "should destroy album credits when media is destroyed" do
     media = Media.create!(
       media_type: @media_type,

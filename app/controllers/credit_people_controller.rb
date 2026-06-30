@@ -65,7 +65,10 @@ class CreditPeopleController < ApplicationController
   end
 
   def credit_person_params
-    params.require(:credit_person).permit(:name, :bio, :wikipedia_url, :allmusic_url, :photo)
+    params.require(:credit_person).permit(
+      :name, :bio, :wikipedia_url, :allmusic_url, :photo,
+      :birth_date, :birth_place, :death_date, :death_place
+    )
   end
 
   def resize_uploaded_photo

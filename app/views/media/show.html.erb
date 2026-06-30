@@ -67,6 +67,13 @@
             <span class="spec-value code-value"><%= @media.catalog_number.presence || "N/A" %></span>
           </div>
 
+          <% if @media.album_release.present? %>
+            <div class="spec-item">
+              <span class="spec-label">Source Release ID</span>
+              <span class="spec-value code-value"><%= @media.album_release.id %></span>
+            </div>
+          <% end %>
+
           <div class="spec-item">
             <span class="spec-label">Barcode</span>
             <span class="spec-value code-value"><%= @media.barcode.presence || "N/A" %></span>

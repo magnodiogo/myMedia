@@ -71,7 +71,7 @@ class AlbumReleasesController < ApplicationController
 
   def album_release_params
     params.require(:album_release).permit(
-      :title, :release_year, :format, :label, :catalog_number,
+      :title, :release_year, :media_type_id, :label, :catalog_number,
       :allmusic_url, :info, :position, :cover_image
     )
   end

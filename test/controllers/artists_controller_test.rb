@@ -2,6 +2,7 @@ require "test_helper"
 
 class ArtistsControllerTest < ActionDispatch::IntegrationTest
   include Devise::Test::IntegrationHelpers
+  include ActiveJob::TestHelper
 
   setup do
     @artist = artists(:queen)
@@ -65,6 +66,8 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
     get artist_url(@artist)
     assert_response :success
     assert_select "h1.page-title", text: @artist.name
+    assert_select "form button", text: "Sync Banner"
+    assert_select "form button", text: "Load All Album Data"
   end
 
   test "common user should see discography and collection tabs" do
@@ -80,9 +83,12 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".tab-link", text: "My Collection"
     assert_select ".read-more-toggle", text: "More", minimum: 1
     assert_select ".discography-group-header h3", text: "Studio"
+    assert_select "h3", text: "Album type progress"
     assert_select "a[href=?]", album_path(albums(:night_at_the_opera)), minimum: 1
     assert_select ".artist-collection-grid .media-card", minimum: 1
     assert_select "form button", text: "Load Discography", count: 0
+    assert_select "form button", text: "Sync Banner", count: 0
+    assert_select "form button", text: "Load All Album Data", count: 0
   end
 
   test "discography should use physical media cover when album cover is missing" do
@@ -248,6 +254,51 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Only administrator users can perform this action.", flash[:alert]
   end
 
+  test "admin should be able to trigger update_banner" do
+    Artist.class_eval do
+      alias_method :orig_update_banner, :update_banner_from_wikipedia
+      def update_banner_from_wikipedia; true; end
+    end
+
+    begin
+      post update_banner_artist_url(@artist)
+      assert_redirected_to edit_artist_url(@artist)
+      assert_equal "Artist banner successfully updated from Wikipedia.", flash[:notice]
+    ensure
+      Artist.class_eval do
+        alias_method :update_banner_from_wikipedia, :orig_update_banner
+        remove_method :orig_update_banner
+      end
+    end
+  end
+
+  test "admin should see error if update_banner fails" do
+    Artist.class_eval do
+      alias_method :orig_update_banner, :update_banner_from_wikipedia
+      def update_banner_from_wikipedia; false; end
+    end
+
+    begin
+      post update_banner_artist_url(@artist)
+      assert_redirected_to edit_artist_url(@artist)
+      assert_equal "Could not find a suitable Wikipedia image for this artist banner.", flash[:alert]
+    ensure
+      Artist.class_eval do
+        alias_method :update_banner_from_wikipedia, :orig_update_banner
+        remove_method :orig_update_banner
+      end
+    end
+  end
+
+  test "common user should not be able to trigger update_banner" do
+    sign_out @admin
+    sign_in users(:one) # Common user
+
+    post update_banner_artist_url(@artist)
+    assert_redirected_to root_url
+    assert_equal "Only administrator users can perform this action.", flash[:alert]
+  end
+
   test "admin should be able to load discography" do
     Artist.class_eval do
       alias_method :orig_load_discography, :load_discography
@@ -293,6 +344,27 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
     sign_in users(:one)
 
     post load_discography_artist_url(@artist)
+    assert_redirected_to root_url
+    assert_equal "Only administrator users can perform this action.", flash[:alert]
+  end
+
+  test "admin should enqueue album data import" do
+    assert_enqueued_with(job: ArtistAlbumDataImportJob, args: [@artist]) do
+      post load_album_data_artist_url(@artist)
+    end
+
+    assert_redirected_to artist_url(@artist)
+    assert_equal "Album data import started for #{@artist.albums.count} #{'album'.pluralize(@artist.albums.count)}.", flash[:notice]
+  end
+
+  test "common user should not be able to load artist album data" do
+    sign_out @admin
+    sign_in users(:one)
+
+    assert_no_enqueued_jobs only: ArtistAlbumDataImportJob do
+      post load_album_data_artist_url(@artist)
+    end
+
     assert_redirected_to root_url
     assert_equal "Only administrator users can perform this action.", flash[:alert]
   end

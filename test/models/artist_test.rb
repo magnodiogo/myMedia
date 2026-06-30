@@ -145,6 +145,35 @@ class ArtistTest < ActiveSupport::TestCase
     assert artist.banner.attached?
   end
 
+  test "should update banner from wikipedia" do
+    artist = Artist.create!(name: "Pink Floyd")
+
+    artist.stub :fetch_wikipedia_image_url, "https://example.com/pink_floyd_banner.jpg" do
+      URI.stub :open, ->(*_a) { File.open(Rails.root.join("db/seeds/images/dark_side_cover.png")) } do
+        assert artist.update_banner_from_wikipedia
+        assert artist.banner.attached?
+      end
+    end
+  end
+
+  test "should fallback to pt wikipedia for banner if en is missing" do
+    artist = Artist.create!(name: "Gilberto Gil")
+
+    calls = []
+    fetch_mock = ->(_title, lang) {
+      calls << lang
+      lang == "pt" ? "https://example.com/gilberto_gil_banner.jpg" : nil
+    }
+
+    artist.stub :fetch_wikipedia_image_url, fetch_mock do
+      URI.stub :open, ->(*_a) { File.open(Rails.root.join("db/seeds/images/dark_side_cover.png")) } do
+        assert artist.update_banner_from_wikipedia
+        assert artist.banner.attached?
+        assert_equal ["en", "pt"], calls
+      end
+    end
+  end
+
   test "should generate correct initials for different names" do
     assert_equal "JC", Artist.new(name: "John Coltrane").initials
     assert_equal "PF", Artist.new(name: "Pink Floyd").initials

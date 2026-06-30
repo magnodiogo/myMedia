@@ -32,8 +32,7 @@
       <% unless devise_controller? %>
         <aside class="sidebar">
           <a href="<%= root_path %>" class="logo-container">
-            <div class="logo-icon">🎵</div>
-            <span class="logo-text">myMedia</span>
+            <%= image_tag "/logo.png", class: "app-logo", alt: "myMedia" %>
           </a>
 
           <nav>

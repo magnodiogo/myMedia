@@ -72,8 +72,195 @@
   </div>
 
   <div class="form-group">
+    <%= form.label :fun_facts, "Fun Facts", class: "form-label" %>
+    <%= form.hidden_field :fun_facts, id: "album_fun_facts" %>
+
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+
+    <style>
+      .ql-toolbar.ql-snow {
+        background-color: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(8px);
+        border: 1px solid var(--panel-border) !important;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+      }
+      .ql-container.ql-snow {
+        background-color: var(--panel-bg, #0b0f19);
+        border: 1px solid var(--panel-border) !important;
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+        color: var(--text-main);
+        font-family: inherit;
+        font-size: 0.95rem;
+      }
+      .ql-editor {
+        min-height: 180px;
+        tab-size: 4;
+        -moz-tab-size: 4;
+      }
+      .ql-editor.ql-blank::before {
+        color: var(--text-muted) !important;
+        font-style: normal;
+        opacity: 0.5;
+      }
+      .ql-snow .ql-stroke {
+        stroke: var(--text-muted) !important;
+      }
+      .ql-snow .ql-fill {
+        fill: var(--text-muted) !important;
+      }
+      .ql-snow .ql-picker {
+        color: var(--text-muted) !important;
+      }
+      .ql-snow.ql-toolbar button:hover .ql-stroke,
+      .ql-snow.ql-toolbar button.ql-active .ql-stroke {
+        stroke: var(--accent-primary, #6366f1) !important;
+      }
+      .ql-snow.ql-toolbar button:hover .ql-fill,
+      .ql-snow.ql-toolbar button.ql-active .ql-fill {
+        fill: var(--accent-primary, #6366f1) !important;
+      }
+    </style>
+
+    <div id="album-fun-facts-editor-wrapper" style="margin-bottom: 1rem;">
+      <div id="album-fun-facts-editor">
+        <%= raw(album.fun_facts) %>
+      </div>
+    </div>
+
+    <script>
+      (function() {
+        function initAlbumFunFactsEditor() {
+          const editorDiv = document.getElementById('album-fun-facts-editor');
+          const hiddenInput = document.getElementById('album_fun_facts');
+          if (!editorDiv || !hiddenInput) return;
+          if (editorDiv.classList.contains('ql-container')) return;
+          if (typeof Quill === 'undefined') return;
+
+          const quill = new Quill('#album-fun-facts-editor', {
+            theme: 'snow',
+            placeholder: 'Enter fun facts, bullet points, or trivia about this album...',
+            modules: {
+              toolbar: [
+                ['bold', 'italic', 'underline'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                ['link', 'clean']
+              ]
+            }
+          });
+
+          quill.keyboard.addBinding({
+            key: 'Tab'
+          }, function(range, context) {
+            quill.insertText(range.index, '\t');
+            quill.setSelection(range.index + 1);
+            return false;
+          });
+
+          const form = editorDiv.closest('form');
+          if (form) {
+            form.addEventListener('submit', function() {
+              hiddenInput.value = quill.getSemanticHTML();
+            });
+          }
+        }
+
+        document.addEventListener("turbo:load", initAlbumFunFactsEditor);
+        if (document.readyState === "complete" || document.readyState === "interactive") {
+          setTimeout(initAlbumFunFactsEditor, 100);
+        }
+      })();
+    </script>
+  </div>
+
+  <div class="form-group">
     <%= form.label :manual_credits_text, "Participants (Format: Name - Role, one per line)", class: "form-label" %>
     <%= form.text_area :manual_credits_text, rows: 8, class: "form-control", placeholder: "e.g.\nJohn Mayer - Vocals\nJohn Mayer - Guitar\nSteve Jordan - Drums" %>
+  </div>
+
+  <div class="form-group">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <h3 style="margin: 0; color: var(--text-main); font-size: 1.05rem;">Album Releases</h3>
+        <p style="margin: 0.25rem 0 0; color: var(--text-muted); font-size: 0.85rem;">Register known editions, formats, labels, catalog numbers, and release covers.</p>
+      </div>
+    </div>
+
+    <div style="display: grid; gap: 1rem;">
+      <%= form.fields_for :album_releases do |release_form| %>
+        <% release = release_form.object %>
+        <div style="border: 1px solid var(--panel-border); border-radius: 8px; padding: 1rem; background-color: rgba(255, 255, 255, 0.025);">
+          <%= release_form.hidden_field :id if release.persisted? %>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            <strong style="color: var(--text-main); font-size: 0.95rem;"><%= release.persisted? ? release.title : "New release" %></strong>
+            <% if release.persisted? %>
+              <label style="display: inline-flex; align-items: center; gap: 0.4rem; color: var(--text-muted); font-size: 0.85rem;">
+                <%= release_form.check_box :_destroy %>
+                Remove
+              </label>
+            <% end %>
+          </div>
+
+          <div style="display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(110px, 0.5fr) minmax(0, 0.8fr); gap: 1rem;">
+            <div class="form-group">
+              <%= release_form.label :title, "Release Title", class: "form-label" %>
+              <%= release_form.text_field :title, class: "form-control", placeholder: album.title %>
+            </div>
+
+            <div class="form-group">
+              <%= release_form.label :release_year, "Year", class: "form-label" %>
+              <%= release_form.number_field :release_year, class: "form-control", placeholder: "1967" %>
+            </div>
+
+            <div class="form-group">
+              <%= release_form.label :media_type_id, "Physical Format", class: "form-label" %>
+              <%= release_form.collection_select :media_type_id, MediaType.order(:name), :id, :name, { prompt: "Select..." }, { class: "form-control" } %>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr) minmax(90px, 0.35fr); gap: 1rem;">
+            <div class="form-group">
+              <%= release_form.label :label, "Label", class: "form-label" %>
+              <%= release_form.text_field :label, class: "form-control", placeholder: "Columbia / Legacy" %>
+            </div>
+
+            <div class="form-group">
+              <%= release_form.label :catalog_number, "Catalog Number", class: "form-label" %>
+              <%= release_form.text_field :catalog_number, class: "form-control", placeholder: "CK 64935" %>
+            </div>
+
+            <div class="form-group">
+              <%= release_form.label :position, "Position", class: "form-label" %>
+              <%= release_form.number_field :position, class: "form-control" %>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <%= release_form.label :allmusic_url, "AllMusic URL", class: "form-label" %>
+            <%= release_form.url_field :allmusic_url, class: "form-control", placeholder: "https://www.allmusic.com/album/..." %>
+          </div>
+
+          <div class="form-group">
+            <%= release_form.label :cover_image, "Release Cover", class: "form-label" %>
+            <%= release_form.file_field :cover_image, class: "form-control" %>
+            <% if release.cover_image.attached? %>
+              <div style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.6rem;">
+                <%= image_tag release.cover_image, style: "width: 64px; height: 64px; object-fit: cover; border-radius: 4px; border: 1px solid var(--panel-border);" %>
+                <span class="cover-preview-text">Current release cover</span>
+              </div>
+            <% end %>
+          </div>
+
+          <div class="form-group">
+            <%= release_form.label :info, "Release Details", class: "form-label" %>
+            <%= release_form.text_area :info, rows: 3, class: "form-control", placeholder: "Notes about remastering, mono/stereo, packaging, country, or other release details..." %>
+          </div>
+        </div>
+      <% end %>
+    </div>
   </div>
 
   <div class="form-actions">

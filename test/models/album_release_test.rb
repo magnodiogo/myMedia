@@ -3,6 +3,10 @@ require "test_helper"
 class AlbumReleaseTest < ActiveSupport::TestCase
   setup do
     @album = albums(:kind_of_blue)
+    @cd = media_types(:one)
+    @cassette = media_types(:two)
+    @lp = MediaType.for_release_format("LP")
+    @digital = MediaType.for_release_format("Digital")
   end
 
   test "should be valid with required attributes" do
@@ -10,7 +14,7 @@ class AlbumReleaseTest < ActiveSupport::TestCase
       album: @album,
       title: "Kind of Blue",
       release_year: 1959,
-      format: "LP"
+      media_type: @lp
     )
 
     assert release.valid?
@@ -39,8 +43,8 @@ class AlbumReleaseTest < ActiveSupport::TestCase
 
   test "should require unique allmusic url" do
     url = "https://www.allmusic.com/album/release/kind-of-blue-mr0000000001"
-    AlbumRelease.create!(album: @album, title: "Kind of Blue", allmusic_url: url)
-    duplicate = AlbumRelease.new(album: @album, title: "Kind of Blue", allmusic_url: url)
+    AlbumRelease.create!(album: @album, title: "Kind of Blue", media_type: @cd, allmusic_url: url)
+    duplicate = AlbumRelease.new(album: @album, title: "Kind of Blue", media_type: @cd, allmusic_url: url)
 
     assert_not duplicate.valid?
     assert_includes duplicate.errors[:allmusic_url], "has already been taken"
@@ -58,7 +62,7 @@ class AlbumReleaseTest < ActiveSupport::TestCase
       filename: "dark_side_cover.png",
       content_type: "image/png"
     )
-    release = AlbumRelease.create!(album: @album, title: "Kind of Blue", release_year: 1959)
+    release = AlbumRelease.create!(album: @album, title: "Kind of Blue", media_type: @cd, release_year: 1959)
 
     assert release.display_cover_attached?
     assert_equal @album.cover_image.blob, release.display_cover.blob
@@ -70,23 +74,38 @@ class AlbumReleaseTest < ActiveSupport::TestCase
       filename: "dark_side_cover.png",
       content_type: "image/png"
     )
-    release = AlbumRelease.create!(album: @album, title: "Kind of Blue", release_year: 1959, format: "CD")
+    release = AlbumRelease.create!(album: @album, title: "Kind of Blue", release_year: 1959, media_type: @cd)
 
     medium = release.to_media
 
     assert_not medium.cover_image.attached?
   end
 
+  test "should preserve source release link when creating media" do
+    release = AlbumRelease.create!(
+      album: @album,
+      title: "Kind of Blue",
+      release_year: 1959,
+      media_type: @cd,
+      allmusic_url: "https://www.allmusic.com/album/release/kind-of-blue-mr0000000001"
+    )
+
+    medium = release.to_media
+
+    assert_equal release, medium.album_release
+    assert_equal release.allmusic_url, medium.allmusic_url
+  end
+
   test "should identify digital releases as non physical" do
-    digital_release = AlbumRelease.new(album: @album, title: "Kind of Blue", format: "Digital")
-    cd_release = AlbumRelease.new(album: @album, title: "Kind of Blue", format: "CD")
+    digital_release = AlbumRelease.new(album: @album, title: "Kind of Blue", media_type: @digital)
+    cd_release = AlbumRelease.new(album: @album, title: "Kind of Blue", media_type: @cd)
 
     assert_not digital_release.physical?
     assert cd_release.physical?
   end
 
   test "should not create media from digital release" do
-    release = AlbumRelease.create!(album: @album, title: "Kind of Blue", release_year: 1959, format: "Digital")
+    release = AlbumRelease.create!(album: @album, title: "Kind of Blue", release_year: 1959, media_type: @digital)
 
     assert_raises(RuntimeError) { release.to_media }
   end

@@ -40,6 +40,10 @@ class Album < ApplicationRecord
   attr_accessor :cover_url
   attr_writer :manual_credits_text
 
+  accepts_nested_attributes_for :album_releases,
+                                allow_destroy: true,
+                                reject_if: :blank_album_release_attributes?
+
   before_save :download_cover_from_url, if: -> { cover_url.present? && !cover_image.attached? }
   before_save :persist_manual_credits, if: -> { @manual_credits_dirty }
 
@@ -65,12 +69,43 @@ class Album < ApplicationRecord
     self.artist = value
   end
 
+  def canonical_release_year
+    original_release_date&.year || release_year
+  end
+
   def canonical_media
     media.includes(tracks: :track_credits).detect { |medium| medium.tracks.any? } || media.first
   end
 
+  def original_release
+    releases = album_releases.to_a
+    return nil if releases.empty?
+
+    target_year = original_release_date&.year || release_year
+    candidates = target_year.present? ? releases.select { |release| release.release_year == target_year } : releases
+    candidates = releases if candidates.empty?
+
+    candidates.min_by do |release|
+      [
+        release.physical? ? 0 : 1,
+        release.position || 0,
+        release.id || 0
+      ]
+    end
+  end
+
+  def display_cover
+    return cover_image if cover_image.attached?
+
+    release = original_release
+    release.cover_image if release&.cover_image&.attached?
+  end
+
   def display_tracks
-    tracks.includes(:track_credits).to_a.sort_by(&:display_order_key)
+    album_tracks = tracks.where(media_id: nil).includes(:track_credits).to_a
+    source_tracks = album_tracks.presence || canonical_media&.tracks&.includes(:track_credits)&.to_a || []
+
+    source_tracks.sort_by(&:display_order_key)
   end
 
   def participant_credits
@@ -173,6 +208,10 @@ class Album < ApplicationRecord
   end
 
   private
+
+  def blank_album_release_attributes?(attributes)
+    attributes.except("id", "_destroy").values.all?(&:blank?)
+  end
 
   def fetch_cover_from_itunes
     search_term = "#{artist&.name} #{title}"

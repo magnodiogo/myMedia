@@ -1,8 +1,8 @@
 <div style="position: relative; margin-bottom: 2.5rem;">
   <div class="artist-banner-wrapper" data-controller="banner-color" data-banner-color-target="wrapper" style="position: relative; width: 100%; height: 340px; overflow: hidden; border-radius: var(--border-radius, 12px); border: 1px solid var(--panel-border); box-shadow: 0 8px 32px rgba(0,0,0,0.3); transition: background-color 0.4s ease; background-color: #0b0f19;">
     <% if @artist.banner.attached? %>
-      <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: flex-end; z-index: 1;">
-        <%= image_tag @artist.banner, crossorigin: "anonymous", data: { banner_color_target: "image" }, style: "max-width: 100%; max-height: 100%; object-fit: contain; display: block;" %>
+      <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1;">
+        <%= image_tag @artist.banner, crossorigin: "anonymous", data: { banner_color_target: "image" }, style: "width: 100%; height: 100%; object-fit: cover; display: block;" %>
       </div>
     <% else %>
       <!-- Fallback elegant gradient -->
@@ -28,6 +28,8 @@
     <div style="position: absolute; bottom: 1rem; right: 1rem; display: flex; gap: 0.5rem; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(12px); padding: 0.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); z-index: 10;">
       <% if current_user&.admin? %>
         <%= button_to "Load Discography", load_discography_artist_path(@artist), method: :post, class: "btn btn-primary btn-sm", style: "margin: 0; padding: 0.4rem 0.8rem; font-size: 0.8rem;" %>
+        <%= button_to "Load All Album Data", load_album_data_artist_path(@artist), method: :post, class: "btn btn-secondary btn-sm", style: "margin: 0; padding: 0.4rem 0.8rem; font-size: 0.8rem;" %>
+        <%= button_to "Sync Banner", update_banner_artist_path(@artist), method: :post, class: "btn btn-secondary btn-sm", style: "margin: 0; padding: 0.4rem 0.8rem; font-size: 0.8rem;" %>
         <a href="<%= edit_artist_path(@artist) %>" class="btn btn-secondary btn-sm" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Edit Artist</a>
       <% end %>
       <a href="<%= artists_path %>" class="btn btn-secondary btn-sm" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Back</a>
@@ -134,7 +136,7 @@
   </div>
 
   <div class="tab-panel" data-tabs-target="panel" data-tab-id="collection_progress" style="display: none;">
-    <%= render "collection_progress", collection_progress: @collection_progress, artist_era_progress: @artist_era_progress %>
+    <%= render "collection_progress", collection_progress: @collection_progress, album_type_progress: @album_type_progress, artist_era_progress: @artist_era_progress %>
   </div>
 
   <% if current_user %>

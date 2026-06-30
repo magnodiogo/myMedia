@@ -1,6 +1,6 @@
 class ArtistsController < ApplicationController
-  before_action :set_artist, only: %i[ show edit update destroy update_wiki update_photo load_discography ]
-  before_action :require_admin!, only: %i[ new create edit update destroy update_wiki update_photo load_discography ]
+  before_action :set_artist, only: %i[ show edit update destroy update_wiki update_photo update_banner load_discography load_album_data ]
+  before_action :require_admin!, only: %i[ new create edit update destroy update_wiki update_photo update_banner load_discography load_album_data ]
   before_action :resize_uploaded_images, only: %i[ create update ]
 
   def index
@@ -20,6 +20,7 @@ class ArtistsController < ApplicationController
     @styles = @artist.albums.joins(:media_styles).distinct.order("media_styles.name").pluck("media_styles.name")
     @collection_progress = CollectionProgressCalculator.for_artist(@artist, user: current_user)
     @artist_era_progress = CollectionProgressAnalytics.progress_for_artist_eras(@artist, user: current_user)
+    @album_type_progress = CollectionProgressAnalytics.progress_for_artist_album_types(@artist, user: current_user)
   end
 
   def new
@@ -70,6 +71,14 @@ class ArtistsController < ApplicationController
     end
   end
 
+  def update_banner
+    if @artist.update_banner_from_wikipedia
+      redirect_to edit_artist_path(@artist), notice: "Artist banner successfully updated from Wikipedia."
+    else
+      redirect_to edit_artist_path(@artist), alert: "Could not find a suitable Wikipedia image for this artist banner."
+    end
+  end
+
   def load_discography
     result = @artist.load_discography
 
@@ -78,6 +87,13 @@ class ArtistsController < ApplicationController
     else
       redirect_to artist_path(@artist), notice: "Discography loaded: #{result[:imported]} imported, #{result[:updated]} updated, #{result[:skipped]} skipped."
     end
+  end
+
+  def load_album_data
+    album_count = @artist.albums.count
+    ArtistAlbumDataImportJob.perform_later(@artist)
+
+    redirect_to artist_path(@artist), notice: "Album data import started for #{album_count} #{'album'.pluralize(album_count)}."
   end
 
   private

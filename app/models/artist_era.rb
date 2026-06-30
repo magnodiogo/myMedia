@@ -11,7 +11,7 @@ class ArtistEra < ApplicationRecord
     return false unless medium&.artist_id == artist_id
     return true if starts_on.blank? && ends_on.blank?
 
-    release_year = medium.release_year
+    release_year = medium.album&.canonical_release_year || medium.release_year
     return false if release_year.blank?
 
     (starts_on.blank? || release_year >= starts_on.year) &&
@@ -19,9 +19,18 @@ class ArtistEra < ApplicationRecord
   end
 
   def media_scope
-    scope = artist.media
-    scope = scope.where("release_year >= ?", starts_on.year) if starts_on.present?
-    scope = scope.where("release_year <= ?", ends_on.year) if ends_on.present?
+    scope = artist.media.left_outer_joins(:album)
+    canonical_year_sql = "COALESCE(EXTRACT(YEAR FROM albums.original_release_date)::integer, albums.release_year, media.release_year)"
+    scope = scope.where("#{canonical_year_sql} >= ?", starts_on.year) if starts_on.present?
+    scope = scope.where("#{canonical_year_sql} <= ?", ends_on.year) if ends_on.present?
+    scope
+  end
+
+  def album_scope
+    scope = artist.albums.studio
+    canonical_year_sql = "COALESCE(EXTRACT(YEAR FROM albums.original_release_date)::integer, albums.release_year)"
+    scope = scope.where("#{canonical_year_sql} >= ?", starts_on.year) if starts_on.present?
+    scope = scope.where("#{canonical_year_sql} <= ?", ends_on.year) if ends_on.present?
     scope
   end
 

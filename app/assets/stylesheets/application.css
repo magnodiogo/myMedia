@@ -82,6 +82,7 @@ body {
 }
 
 .app-container.sidebar-collapsed .logo-text,
+.app-container.sidebar-collapsed .admin-badge-small,
 .app-container.sidebar-collapsed .nav-text,
 .app-container.sidebar-collapsed .active-user-container,
 .app-container.sidebar-collapsed .theme-toggle-text {
@@ -107,6 +108,21 @@ body {
   gap: 0.75rem;
   margin-bottom: 3rem;
   text-decoration: none;
+  min-height: 44px;
+}
+
+.app-logo {
+  display: block;
+  width: 150px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.app-container.sidebar-collapsed .app-logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
 }
 
 .logo-icon {
@@ -3687,4 +3703,3 @@ body {
   font-size: 0.75rem;
   color: var(--text-muted);
 }
-

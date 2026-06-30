@@ -29,6 +29,18 @@ class CollectionProgressAnalytics
     end
   end
 
+  def self.progress_for_artist_album_types(artist, user: nil)
+    Album.album_types.keys.map do |album_type|
+      progress = CollectionProgressCalculator.for_artist_album_type(artist, album_type, user: user)
+      next if progress[:total_count].zero?
+
+      {
+        album_type: album_type,
+        progress: progress
+      }
+    end.compact
+  end
+
   def self.artist_progress(user: nil)
     Artist.order(:name).map do |artist|
       {

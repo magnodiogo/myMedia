@@ -21,14 +21,31 @@ class CollectionProgressCalculatorTest < ActiveSupport::TestCase
     UserMedia.create!(user: @user, media: @owned)
   end
 
-  test "should calculate artist progress percentage" do
+  test "should calculate artist album progress percentage" do
     progress = CollectionProgressCalculator.for_artist(@artist, user: @user)
 
     assert_equal 2, progress[:total_count]
     assert_equal 1, progress[:owned_count]
     assert_equal 50.0, progress[:percentage]
     assert_equal 1, progress[:missing_count]
-    assert_equal [@missing.id], progress[:missing_media].pluck(:id)
+    assert_equal [@missing.album_id], progress[:missing_albums].pluck(:id)
+  end
+
+  test "should count albums once when user owns multiple physical editions" do
+    second_copy = Media.create!(
+      artist: @artist,
+      album: @owned.album,
+      media_type: @media_type,
+      title: "Owned Album Reissue",
+      release_year: 2026
+    )
+    UserMedia.create!(user: @user, media: second_copy)
+
+    progress = CollectionProgressCalculator.for_artist(@artist, user: @user)
+
+    assert_equal 2, progress[:total_count]
+    assert_equal 1, progress[:owned_count]
+    assert_equal 50.0, progress[:percentage]
   end
 
   test "should calculate zero percentage when target has no media" do
@@ -42,6 +59,23 @@ class CollectionProgressCalculatorTest < ActiveSupport::TestCase
   end
 
   test "should calculate artist era progress" do
+    live_album = Album.create!(
+      artist: @artist,
+      title: "Live Early Era Album",
+      release_year: 1970,
+      album_type: :live
+    )
+    Media.create!(
+      artist: @artist,
+      album: live_album,
+      media_type: @media_type,
+      title: "Live Early Era Album",
+      release_year: 1970
+    )
+    @owned.album.update!(release_year: 1970)
+    @missing.album.update!(release_year: 1971)
+    @owned.update!(release_year: 2026)
+
     artist_era = ArtistEra.create!(
       artist: @artist,
       name: "Early Era",
@@ -50,6 +84,17 @@ class CollectionProgressCalculatorTest < ActiveSupport::TestCase
     )
 
     progress = CollectionProgressCalculator.for_artist_era(artist_era, user: @user)
+
+    assert_equal 1, progress[:total_count]
+    assert_equal 1, progress[:owned_count]
+    assert_equal 100.0, progress[:percentage]
+  end
+
+  test "should calculate artist album type progress" do
+    @owned.album.update!(album_type: :studio)
+    @missing.album.update!(album_type: :live)
+
+    progress = CollectionProgressCalculator.for_artist_album_type(@artist, :studio, user: @user)
 
     assert_equal 1, progress[:total_count]
     assert_equal 1, progress[:owned_count]

@@ -32,8 +32,8 @@
       <% unless devise_controller? %>
         <aside class="sidebar">
           <a href="<%= root_path %>" class="logo-container">
-            <div class="logo-icon admin-logo-icon">👑</div>
-            <span class="logo-text">myMedia <small class="admin-badge-small">ADMIN</small></span>
+            <%= image_tag "/logo.png", class: "app-logo", alt: "myMedia" %>
+            <small class="admin-badge-small">ADMIN</small>
           </a>
 
           <nav>

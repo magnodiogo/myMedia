@@ -90,11 +90,20 @@ class Media < ApplicationRecord
       system("mogrify -resize '600x600>' -strip #{temp_path}")
       
       cover_image.attach(io: File.open(temp_path), filename: "cover-#{SecureRandom.hex(8)}.jpg", content_type: "image/jpeg")
+      sync_cover_image_to_album_release
       
       File.delete(temp_path) if File.exist?(temp_path)
     rescue => e
       Rails.logger.error("Failed to download cover from URL #{url}: #{e.message}")
     end
+  end
+
+  def sync_cover_image_to_album_release
+    return unless album_release.present?
+    return if album_release.cover_image.attached?
+    return unless cover_image.attached?
+
+    album_release.cover_image.attach(cover_image.blob)
   end
 
   def sync_allmusic_url_to_album

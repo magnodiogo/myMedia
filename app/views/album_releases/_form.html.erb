@@ -31,8 +31,8 @@
   </div>
 
   <div class="form-group">
-    <%= form.label :format, "Format", class: "form-label" %>
-    <%= form.text_field :format, class: "form-control", placeholder: "e.g., CD, LP, Digital" %>
+    <%= form.label :media_type_id, "Physical Format", class: "form-label" %>
+    <%= form.collection_select :media_type_id, MediaType.order(:name), :id, :name, { prompt: "Select a format..." }, { class: "form-control" } %>
   </div>
 
   <div class="form-group">

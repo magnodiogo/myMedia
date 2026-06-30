@@ -100,17 +100,29 @@ class AlbumEnrichmentService
   end
 
   def best_release(releases)
-    releases.compact.max_by do |release|
-      [
-        release_track_count(release),
-        release["date"].present? ? 1 : 0,
-        release["status"] == "Official" ? 1 : 0
-      ]
-    end
+    releases.compact.min_by { |release| release_rank(release) }
   end
 
   def release_track_count(release)
     release.fetch("media", []).sum { |medium| medium.fetch("tracks", []).size }
+  end
+
+  def release_rank(release)
+    [
+      release["status"] == "Official" ? 0 : 1,
+      release["title"].to_s.casecmp(album.title.to_s).zero? ? 0 : 1,
+      release_date_sort_value(release["date"]),
+      release_track_count(release)
+    ]
+  end
+
+  def release_date_sort_value(value)
+    return Date.new(9999, 12, 31) if value.blank?
+
+    parts = value.to_s.split("-").map(&:to_i)
+    Date.new(parts[0], parts[1].presence || 1, parts[2].presence || 1)
+  rescue ArgumentError
+    Date.new(9999, 12, 31)
   end
 
   def update_album!(release_group, release, wikipedia_data)
@@ -134,7 +146,11 @@ class AlbumEnrichmentService
   end
 
   def import_tracks!(release, result)
-    track_rows_for(release).each do |row|
+    imported_track_ids = []
+    rows = track_rows_for(release)
+    return if rows.empty?
+
+    rows.each do |row|
       track = find_or_build_track(row)
       was_new = track.new_record?
 
@@ -154,9 +170,12 @@ class AlbumEnrichmentService
       end
 
       track.save!
+      imported_track_ids << track.id
       result[was_new ? :imported_tracks : :updated_tracks] += 1
       result[:credits_imported] += import_track_credits!(track, row[:artist_credits])
     end
+
+    album.tracks.where(media_id: nil).where.not(id: imported_track_ids).destroy_all
   end
 
   def track_rows_for(release)

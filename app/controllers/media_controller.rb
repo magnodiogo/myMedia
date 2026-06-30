@@ -41,7 +41,7 @@ class MediaController < ApplicationController
       tracks: :track_credits
     ).friendly.find(params[:id])
     @album_record = @media.album
-    @display_tracks = @album_record&.display_tracks.presence || @media.tracks.includes(:track_credits)
+    @display_tracks = @media.tracks.includes(:track_credits).presence || @album_record&.display_tracks || []
     @display_credits = @album_record&.album_credits || @media.album_credits
     @album_credits_by_category = @display_credits.includes(:credit_person).order(:person_name, :role).group_by(&:credit_category)
     @display_cover = @media.cover_image.attached? ? @media.cover_image : (@media.album_release&.display_cover || @album_record&.cover_image)

@@ -31,6 +31,30 @@
     <%= form.url_field :wikipedia_url, class: "form-control", placeholder: "https://en.wikipedia.org/wiki/..." %>
   </div>
 
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem;">
+    <div class="form-group">
+      <%= form.label :birth_date, "Birth Date", class: "form-label" %>
+      <%= form.date_field :birth_date, class: "form-control" %>
+    </div>
+
+    <div class="form-group">
+      <%= form.label :birth_place, "Birth Place", class: "form-label" %>
+      <%= form.text_field :birth_place, class: "form-control", placeholder: "e.g., Cambridge, England" %>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem;">
+    <div class="form-group">
+      <%= form.label :death_date, "Death Date", class: "form-label" %>
+      <%= form.date_field :death_date, class: "form-control" %>
+    </div>
+
+    <div class="form-group">
+      <%= form.label :death_place, "Death Place", class: "form-label" %>
+      <%= form.text_field :death_place, class: "form-control", placeholder: "e.g., London, England" %>
+    </div>
+  </div>
+
   <div class="form-group">
     <%= form.label :bio, "Biography", class: "form-label" %>
     <%= form.text_area :bio, rows: 8, class: "form-control", placeholder: "Write some details about this person..." %>
