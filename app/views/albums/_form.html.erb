@@ -180,6 +180,7 @@
     <%= form.text_area :manual_credits_text, rows: 8, class: "form-control", placeholder: "e.g.\nJohn Mayer - Vocals\nJohn Mayer - Guitar\nSteve Jordan - Drums" %>
   </div>
 
+  <% if false %>
   <div class="form-group">
     <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; margin-bottom: 1rem;">
       <div>
@@ -262,6 +263,8 @@
       <% end %>
     </div>
   </div>
+  <% end %>
+
 
   <div class="form-actions">
     <%= link_to "Cancel", album_path(album), class: "btn btn-secondary" %>

@@ -303,7 +303,18 @@ class Album < ApplicationRecord
     end.compact
 
     self.album_credits = parsed_credits.map do |pc|
-      person = CreditPerson.where("LOWER(name) = ?", pc[:person_name].downcase).first || CreditPerson.create!(name: pc[:person_name])
+      normalized_name = pc[:person_name]
+      person = CreditPerson.where("LOWER(name) = ?", normalized_name.downcase).first
+
+      if person.nil?
+        transliterated = ActiveSupport::Inflector.transliterate(normalized_name).downcase
+        person = CreditPerson.all.detect do |cp|
+          ActiveSupport::Inflector.transliterate(cp.name).downcase == transliterated
+        end
+      end
+
+      person ||= CreditPerson.create!(name: normalized_name)
+
       AlbumCredit.new(
         credit_person: person,
         person_name: pc[:person_name],

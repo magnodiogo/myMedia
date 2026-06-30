@@ -15,11 +15,11 @@
 <div class="spec-card-premium" style="margin-bottom: 2.5rem;">
   <div class="spec-card-cover-side" style="width: 200px;">
     <% if @credit_person.photo.attached? %>
-      <div class="detail-cover-wrapper" style="border-radius: 50%; width: 200px; height: 200px; overflow: hidden; border: 2px solid var(--panel-border);">
-        <%= image_tag @credit_person.photo, class: "detail-cover", style: "width: 100%; height: 100%; object-fit: cover;" %>
+      <div class="detail-cover-wrapper" style="border-radius: var(--border-radius); width: 200px; height: auto; overflow: hidden; border: 2px solid var(--panel-border); aspect-ratio: auto;">
+        <%= image_tag @credit_person.photo, class: "detail-cover", style: "width: 100%; height: auto; display: block;" %>
       </div>
     <% else %>
-      <div class="detail-cover-placeholder" style="border-radius: 50%; width: 200px; height: 200px;">
+      <div class="detail-cover-placeholder" style="border-radius: var(--border-radius); width: 200px; height: 200px;">
         <span class="placeholder-icon" style="font-size: 4.5rem; opacity: 0.5;">👤</span>
       </div>
     <% end %>

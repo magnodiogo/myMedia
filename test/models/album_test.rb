@@ -159,4 +159,17 @@ class AlbumTest < ActiveSupport::TestCase
 
     assert_not album.try_load_cover!
   end
+
+  test "persist_manual_credits de-duplicates credit people by exact and transliterated name" do
+    album = albums(:kind_of_blue)
+    p1 = CreditPerson.create!(name: "Leon Michels")
+
+    assert_no_difference "CreditPerson.count" do
+      album.manual_credits_text = "Leon Michels - Producer\nLéon Michels - Saxophone"
+      album.save!
+    end
+
+    assert_equal 2, album.album_credits.count
+    assert_equal [p1, p1], album.album_credits.map(&:credit_person)
+  end
 end

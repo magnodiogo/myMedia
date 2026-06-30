@@ -122,7 +122,27 @@ module Allmusic
     end
 
     def find_or_create_credit_person(name, allmusic_url = nil)
-      person = CreditPerson.where("LOWER(name) = ?", name.to_s.downcase).first || CreditPerson.create!(name: name)
+      person = nil
+      if allmusic_url.present?
+        person = CreditPerson.where("LOWER(allmusic_url) = ?", allmusic_url.downcase).first
+      end
+
+      if person.nil?
+        normalized_name = name.to_s.strip
+        person = CreditPerson.where("LOWER(name) = ?", normalized_name.downcase).first
+
+        if person.nil?
+          transliterated = ActiveSupport::Inflector.transliterate(normalized_name).downcase
+          person = CreditPerson.all.detect do |cp|
+            ActiveSupport::Inflector.transliterate(cp.name).downcase == transliterated
+          end
+        end
+      end
+
+      if person.nil?
+        person = CreditPerson.create!(name: name)
+      end
+
       person.update!(allmusic_url: allmusic_url) if person.allmusic_url.blank? && allmusic_url.present?
       person
     end

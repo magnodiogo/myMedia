@@ -14,6 +14,7 @@ class CreditPerson < ApplicationRecord
   attr_accessor :photo_url
 
   before_save :download_photo_from_url, if: -> { photo_url.present? }
+  after_create_commit :enqueue_metadata_import
 
   validates :name, presence: true, uniqueness: { case_sensitive: false }
 
@@ -63,6 +64,7 @@ class CreditPerson < ApplicationRecord
       allmusic: false,
       wikipedia_bio: false,
       wikipedia_photo: false,
+      wikidata: false,
       bio: false,
       photo: false,
       errors: []
@@ -74,11 +76,23 @@ class CreditPerson < ApplicationRecord
       self.wikipedia_url = summary_data["fullurl"] if summary_data["fullurl"].present?
       result[:wikipedia_bio] = true
       result[:bio] = true
+
+      wikibase_item = summary_data.dig("pageprops", "wikibase_item")
+      if wikibase_item.present?
+        fetch_and_populate_wikidata_details(wikibase_item)
+        result[:wikidata] = true if birth_date_changed? || birth_place_changed? || death_date_changed? || death_place_changed?
+      end
     elsif wikipedia_url.blank?
       summary_data = fetch_wikipedia_summary_candidates
       if summary_data.present? && summary_data["fullurl"].present?
         self.wikipedia_url = summary_data["fullurl"]
         result[:wikipedia_bio] = true
+
+        wikibase_item = summary_data.dig("pageprops", "wikibase_item")
+        if wikibase_item.present?
+          fetch_and_populate_wikidata_details(wikibase_item)
+          result[:wikidata] = true if birth_date_changed? || birth_place_changed? || death_date_changed? || death_place_changed?
+        end
       end
     end
 
@@ -184,7 +198,7 @@ class CreditPerson < ApplicationRecord
     uri = URI("https://#{language}.wikipedia.org/w/api.php")
     uri.query = URI.encode_www_form(
       action: "query",
-      prop: "extracts|info",
+      prop: "extracts|info|pageprops",
       exintro: true,
       explaintext: true,
       inprop: "url",
@@ -203,6 +217,124 @@ class CreditPerson < ApplicationRecord
   rescue => e
     Rails.logger.error "Wikipedia #{language} fetch error for credit person #{title}: #{e.message}"
     nil
+  end
+
+  def fetch_and_populate_wikidata_details(qid)
+    return if qid.blank?
+
+    uri = URI("https://www.wikidata.org/wiki/Special:EntityData/#{qid}.json")
+    response = http_get(uri)
+    return unless response.code == "200"
+
+    data = JSON.parse(response.body)
+    entity = data.dig("entities", qid)
+    return unless entity
+
+    # Extract birth date (P569)
+    if birth_date.blank?
+      b_date_str = entity.dig("claims", "P569")&.first&.dig("mainsnak", "datavalue", "value", "time")
+      if b_date_str.present? && b_date_str =~ /\A\+?(\d{4}-\d{2}-\d{2})/
+        self.birth_date = Date.parse($1) rescue nil
+      end
+    end
+
+    # Extract death date (P570)
+    if death_date.blank?
+      d_date_str = entity.dig("claims", "P570")&.first&.dig("mainsnak", "datavalue", "value", "time")
+      if d_date_str.present? && d_date_str =~ /\A\+?(\d{4}-\d{2}-\d{2})/
+        self.death_date = Date.parse($1) rescue nil
+      end
+    end
+
+    # Extract birth place QID (P19) and death place QID (P20)
+    b_place_qid = entity.dig("claims", "P19")&.first&.dig("mainsnak", "datavalue", "value", "id")
+    d_place_qid = entity.dig("claims", "P20")&.first&.dig("mainsnak", "datavalue", "value", "id")
+
+    if b_place_qid.present? && birth_place.blank?
+      self.birth_place = resolve_wikidata_place_name(b_place_qid)
+    end
+
+    if d_place_qid.present? && death_place.blank?
+      self.death_place = resolve_wikidata_place_name(d_place_qid)
+    end
+  rescue => e
+    Rails.logger.error "Wikidata fetch error for QID #{qid}: #{e.message}"
+  end
+
+  def resolve_wikidata_place_name(place_qid)
+    return nil if place_qid.blank?
+
+    place_data = fetch_wikidata_entity(place_qid)
+    return nil unless place_data
+
+    place_label = get_wikidata_label_from_entity(place_data)
+    return nil if place_label.blank?
+
+    p131_qid = place_data.dig("claims", "P131")&.first&.dig("mainsnak", "datavalue", "value", "id")
+    p17_qid = place_data.dig("claims", "P17")&.first&.dig("mainsnak", "datavalue", "value", "id")
+
+    parent_label = nil
+    grandparent_label = nil
+    if p131_qid.present?
+      parent_data = fetch_wikidata_entity(p131_qid)
+      if parent_data
+        parent_label = get_wikidata_label_from_entity(parent_data)
+        
+        gp131_qid = parent_data.dig("claims", "P131")&.first&.dig("mainsnak", "datavalue", "value", "id")
+        if gp131_qid.present? && gp131_qid != p17_qid
+          gp_data = fetch_wikidata_entity(gp131_qid)
+          if gp_data
+            grandparent_label = get_wikidata_label_from_entity(gp_data)
+          end
+        end
+      end
+    end
+
+    country_label = nil
+    if p17_qid.present?
+      country_data = fetch_wikidata_entity(p17_qid)
+      if country_data
+        country_label = get_wikidata_label_from_entity(country_data)
+      end
+    end
+
+    parts = [place_label]
+    [parent_label, grandparent_label].each do |lbl|
+      next if lbl.blank?
+      next if lbl.downcase =~ /county|condado|district|distrito|parish/
+      next if parts.include?(lbl)
+      parts << lbl
+    end
+
+    if country_label.present?
+      if country_label =~ /\A(United States( of America)?|Estados Unidos( da América)?)\z/i
+        country_label = "U.S."
+      end
+      parts << country_label unless parts.include?(country_label)
+    end
+
+    parts.join(", ")
+  rescue => e
+    Rails.logger.error "Error resolving place name for QID #{place_qid}: #{e.message}"
+    nil
+  end
+
+  def fetch_wikidata_entity(qid)
+    return nil if qid.blank?
+
+    uri = URI("https://www.wikidata.org/wiki/Special:EntityData/#{qid}.json")
+    response = http_get(uri)
+    return nil unless response.code == "200"
+
+    data = JSON.parse(response.body)
+    data.dig("entities", qid)
+  rescue => e
+    Rails.logger.error "Error fetching Wikidata entity #{qid}: #{e.message}"
+    nil
+  end
+
+  def get_wikidata_label_from_entity(entity_data)
+    entity_data.dig("labels", "en", "value") || entity_data.dig("labels", "pt", "value")
   end
 
   def fetch_wikipedia_image_url(title, language)
@@ -252,5 +384,11 @@ class CreditPerson < ApplicationRecord
     File.delete(temp_path) if File.exist?(temp_path)
   rescue => e
     Rails.logger.error("Failed to download credit person photo from URL #{url}: #{e.message}")
+  end
+
+  private
+
+  def enqueue_metadata_import
+    CreditPersonMetadataJob.perform_later(self)
   end
 end

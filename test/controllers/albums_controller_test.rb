@@ -121,8 +121,8 @@ class AlbumsControllerTest < ActionDispatch::IntegrationTest
     get edit_album_url(@album)
     assert_response :success
     assert_select "h1", text: "Edit Album"
-    assert_select "h3", text: "Album Releases"
-    assert_select "input[name*='[album_releases_attributes]'][name$='[title]']", minimum: 1
+    # assert_select "h3", text: "Album Releases"
+    # assert_select "input[name*='[album_releases_attributes]'][name$='[title]']", minimum: 1
   end
 
   test "admin should update album details and virtual attributes" do
