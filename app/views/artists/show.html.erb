@@ -1,35 +1,35 @@
-<div style="position: relative; margin-bottom: 2.5rem;">
-  <div class="artist-banner-wrapper" data-controller="banner-color" data-banner-color-target="wrapper" style="position: relative; width: 100%; height: 340px; overflow: hidden; border-radius: var(--border-radius, 12px); border: 1px solid var(--panel-border); box-shadow: 0 8px 32px rgba(0,0,0,0.3); transition: background-color 0.4s ease; background-color: #0b0f19;">
-    <% if @artist.banner.attached? %>
-      <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1;">
-        <%= image_tag @artist.banner, crossorigin: "anonymous", data: { banner_color_target: "image" }, style: "width: 100%; height: 100%; object-fit: cover; display: block;" %>
-      </div>
-    <% else %>
-      <!-- Fallback elegant gradient -->
-      <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #1e1b4b 0%, #3b0764 50%, #030712 100%); z-index: 1;"></div>
-    <% end %>
+<div style="position: relative; margin-bottom: 4.5rem;">
+  <% artist_image = @artist.photo.attached? ? @artist.photo : (@artist.banner.attached? ? @artist.banner : nil) %>
+  
+  <!-- Banner with dynamic color theme background -->
+  <div class="artist-banner-wrapper" data-controller="banner-color" data-banner-color-target="wrapper" style="position: relative; width: 100%; height: 260px; border-radius: var(--border-radius, 16px); border: 1px solid var(--panel-border); box-shadow: 0 8px 32px rgba(0,0,0,0.3); background-color: var(--banner-bg-color, #0b0f19); transition: background-color 0.5s ease;">
+    
+    <!-- Dynamic gradient overlay layer -->
+    <div class="artist-banner-bg" data-banner-color-target="bg" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: var(--border-radius, 16px); overflow: hidden; z-index: 0; background: linear-gradient(135deg, #1e1b4b 0%, #0b0f19 100%); transition: background 0.5s ease;"></div>
 
-    <!-- Bottom gradient shadow overlay for text readability -->
-    <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 120px; background: linear-gradient(to top, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0) 100%); z-index: 5; pointer-events: none;"></div>
-
-    <!-- Artist name overlay -->
-    <div style="position: absolute; top: 50%; left: 3.5rem; transform: translateY(-50%); z-index: 10;">
-      <h1 class="page-title" style="font-size: 2.8rem; font-weight: 600; color: #ffffff; margin: 0; line-height: 1.1; letter-spacing: -1px; text-shadow: 0 4px 16px rgba(0,0,0,0.65);"><%= @artist.name %></h1>
+    <!-- Overlapping Framed Artist Photo (Bottom Left, Shifted Downwards) -->
+    <div class="artist-photo-frame" style="position: absolute; bottom: -35px; left: 3rem; width: 210px; height: 210px; border-radius: 20px; background: rgba(15, 23, 42, 0.95); border: 4px solid var(--panel-border, rgba(255,255,255,0.15)); box-shadow: 0 16px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.2); overflow: hidden; z-index: 15; display: flex; align-items: center; justify-content: center; transition: transform 0.3s ease;">
+      <% if artist_image %>
+        <%= image_tag artist_image, crossorigin: "anonymous", data: { banner_color_target: "image" }, style: "width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block;" %>
+      <% else %>
+        <div style="font-size: 3.5rem; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; background: linear-gradient(135deg, #1e1b4b 0%, #3b0764 100%); color: #a5b4fc;">🎵</div>
+      <% end %>
     </div>
 
-    <!-- Albums/editions count overlay -->
-    <div style="position: absolute; bottom: 1.5rem; left: 3.5rem; z-index: 10;">
-      <div style="background-color: rgba(99, 102, 241, 0.25); backdrop-filter: blur(12px); border: 1px solid rgba(99, 102, 241, 0.4); color: #e0e7ff; padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 4px 12px rgba(0,0,0,0.35);">
+    <!-- Artist Info & Badge (Positioned Right of the Photo) -->
+    <div style="position: absolute; bottom: 1.5rem; left: 17.5rem; right: 2rem; z-index: 10; display: flex; flex-direction: column; gap: 0.65rem; align-items: flex-start;">
+      <h1 class="page-title" style="font-size: 2.8rem; font-weight: 600; color: #ffffff; margin: 0; line-height: 1.1; letter-spacing: -1px; text-shadow: 0 4px 16px rgba(0,0,0,0.65);"><%= @artist.name %></h1>
+      <div style="background-color: rgba(99, 102, 241, 0.25); backdrop-filter: blur(12px); border: 1px solid rgba(99, 102, 241, 0.4); color: #e0e7ff; padding: 0.4rem 0.85rem; border-radius: 20px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 4px 12px rgba(0,0,0,0.35);">
         💿 <%= pluralize(@albums.count, "album") %> / <%= pluralize(@media.count, "edition") %>
       </div>
     </div>
 
-    <!-- Action buttons container (z-index 10 to stand above the layers) -->
-    <div style="position: absolute; bottom: 1rem; right: 1rem; display: flex; gap: 0.5rem; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(12px); padding: 0.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); z-index: 10;">
+    <!-- Action buttons container (Top Right) -->
+    <div style="position: absolute; top: 1.25rem; right: 1.5rem; display: flex; gap: 0.5rem; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(12px); padding: 0.45rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); z-index: 10;">
       <% if current_user&.admin? %>
         <%= button_to "Load Discography", load_discography_artist_path(@artist), method: :post, class: "btn btn-primary btn-sm", style: "margin: 0; padding: 0.4rem 0.8rem; font-size: 0.8rem;" %>
         <%= button_to "Load All Album Data", load_album_data_artist_path(@artist), method: :post, class: "btn btn-secondary btn-sm", style: "margin: 0; padding: 0.4rem 0.8rem; font-size: 0.8rem;" %>
-        <%= button_to "Sync Banner", update_banner_artist_path(@artist), method: :post, class: "btn btn-secondary btn-sm", style: "margin: 0; padding: 0.4rem 0.8rem; font-size: 0.8rem;" %>
+        <%= button_to "Sync Photo", update_photo_artist_path(@artist), method: :post, class: "btn btn-secondary btn-sm", style: "margin: 0; padding: 0.4rem 0.8rem; font-size: 0.8rem;" %>
         <a href="<%= edit_artist_path(@artist) %>" class="btn btn-secondary btn-sm" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Edit Artist</a>
       <% end %>
       <a href="<%= artists_path %>" class="btn btn-secondary btn-sm" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Back</a>
