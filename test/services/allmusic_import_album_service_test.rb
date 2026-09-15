@@ -195,6 +195,30 @@ class AllmusicImportAlbumServiceTest < ActiveSupport::TestCase
     end
   end
 
+  test "find_or_create_credit_person avoids duplicates via url, name, or transliterated name" do
+    service = Allmusic::ImportAlbumService.new(@media)
+
+    # 1. Matches by exact name
+    p1 = CreditPerson.create!(name: "Leon Michels")
+    assert_no_difference "CreditPerson.count" do
+      res = service.send(:find_or_create_credit_person, "Leon Michels")
+      assert_equal p1, res
+    end
+
+    # 2. Matches by transliterated/accented name (e.g. "Léon Michels" -> "Leon Michels")
+    assert_no_difference "CreditPerson.count" do
+      res = service.send(:find_or_create_credit_person, "Léon Michels")
+      assert_equal p1, res
+    end
+
+    # 3. Matches by allmusic_url even if the name differs
+    p2 = CreditPerson.create!(name: "L. Michels", allmusic_url: "https://www.allmusic.com/artist/leon-michels-mn0000788645")
+    assert_no_difference "CreditPerson.count" do
+      res = service.send(:find_or_create_credit_person, "Leon Michels", "https://www.allmusic.com/artist/leon-michels-mn0000788645")
+      assert_equal p2, res
+    end
+  end
+
   private
 
   def assert_credit(person_name, role)

@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = [ "image", "wrapper" ]
+  static targets = [ "image", "wrapper", "bg" ]
 
   connect() {
     if (this.hasImageTarget) {
@@ -20,33 +20,66 @@ export default class extends Controller {
     try {
       const img = this.imageTarget
       const canvas = document.createElement('canvas')
-      canvas.width = 10
-      canvas.height = 10
+      canvas.width = 20
+      canvas.height = 20
       const ctx = canvas.getContext('2d')
       
-      // Draw image to a 10x10 canvas to average the edges
-      ctx.drawImage(img, 0, 0, 10, 10)
+      // Draw image onto canvas for sampling
+      ctx.drawImage(img, 0, 0, 20, 20)
       
-      // Sample the left edge (column 0, row 5) and right edge (column 9, row 5)
-      const leftPixel = ctx.getImageData(0, 5, 1, 1).data
-      const rightPixel = ctx.getImageData(9, 5, 1, 1).data
+      const imgData = ctx.getImageData(0, 0, 20, 20).data
+      let r = 0, g = 0, b = 0, count = 0
       
-      // Average the two sampled edge pixels
-      const r = Math.round((leftPixel[0] + rightPixel[0]) / 2)
-      const g = Math.round((leftPixel[1] + rightPixel[1]) / 2)
-      const b = Math.round((leftPixel[2] + rightPixel[2]) / 2)
+      // Sample pixels across the canvas, filtering out near-white or extreme bright pixels
+      for (let i = 0; i < imgData.length; i += 16) {
+        const pr = imgData[i]
+        const pg = imgData[i + 1]
+        const pb = imgData[i + 2]
+        
+        const brightness = (pr * 299 + pg * 587 + pb * 114) / 1000
+        if (brightness < 240) {
+          r += pr
+          g += pg
+          b += pb
+          count++
+        }
+      }
       
-      const rgb = `rgb(${r}, ${g}, ${b})`
+      if (count > 0) {
+        r = Math.round(r / count)
+        g = Math.round(g / count)
+        b = Math.round(b / count)
+      } else {
+        r = 15; g = 23; b = 42
+      }
+      
+      // Tone down brightness for smooth dark theme harmony
+      const darkR = Math.max(8, Math.round(r * 0.35))
+      const darkG = Math.max(12, Math.round(g * 0.35))
+      const darkB = Math.max(22, Math.round(b * 0.35))
+      
+      const midR = Math.max(15, Math.round(r * 0.65))
+      const midG = Math.max(20, Math.round(g * 0.65))
+      const midB = Math.max(35, Math.round(b * 0.65))
+
+      const primaryRgb = `rgb(${darkR}, ${darkG}, ${darkB})`
+      const gradientBg = `linear-gradient(135deg, rgb(${darkR}, ${darkG}, ${darkB}) 0%, rgb(${midR}, ${midG}, ${midB}) 60%, #0b0f19 100%)`
       
       if (this.hasWrapperTarget) {
-        this.wrapperTarget.style.backgroundColor = rgb
+        this.wrapperTarget.style.setProperty('--banner-bg-color', primaryRgb)
+        this.wrapperTarget.style.backgroundColor = primaryRgb
+      }
+      
+      if (this.hasBgTarget) {
+        this.bgTarget.style.background = gradientBg
       }
     } catch (e) {
-      console.warn("Could not extract banner border color due to cross-origin or canvas error:", e)
-      // Fallback to a dark color if color extraction fails (e.g. CORS block on external CDNs)
+      console.warn("Could not extract banner color due to cross-origin or canvas error:", e)
       if (this.hasWrapperTarget) {
-        this.wrapperTarget.style.backgroundColor = "#0b0f19"
+        this.wrapperTarget.style.setProperty('--banner-bg-color', '#0b0f19')
+        this.wrapperTarget.style.backgroundColor = '#0b0f19'
       }
     }
   }
 }
+

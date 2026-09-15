@@ -44,6 +44,7 @@ class CreditPeopleController < ApplicationController
     loaded << "AllMusic" if result[:allmusic]
     loaded << "Wikipedia biography" if result[:wikipedia_bio]
     loaded << "Wikipedia photo" if result[:wikipedia_photo]
+    loaded << "Wikidata" if result[:wikidata]
 
     if result[:bio] || result[:photo] || loaded.any?
       notice = "Person data loaded"

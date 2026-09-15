@@ -57,25 +57,25 @@ class ArtistsController < ApplicationController
 
   def update_wiki
     if @artist.update_bio_from_wikipedia
-      redirect_to edit_artist_path(@artist), notice: "Artist biography successfully updated from Wikipedia."
+      redirect_back fallback_location: edit_artist_path(@artist), notice: "Artist biography successfully updated from Wikipedia."
     else
-      redirect_to edit_artist_path(@artist), alert: "Could not find a Wikipedia biography for this artist."
+      redirect_back fallback_location: edit_artist_path(@artist), alert: "Could not find a Wikipedia biography for this artist."
     end
   end
 
   def update_photo
     if @artist.update_photo_from_wikipedia
-      redirect_to edit_artist_path(@artist), notice: "Artist photo successfully updated from Wikipedia."
+      redirect_back fallback_location: edit_artist_path(@artist), notice: "Artist photo successfully updated from Wikipedia."
     else
-      redirect_to edit_artist_path(@artist), alert: "Could not find a Wikipedia photo for this artist."
+      redirect_back fallback_location: edit_artist_path(@artist), alert: "Could not find a Wikipedia photo for this artist."
     end
   end
 
   def update_banner
     if @artist.update_banner_from_wikipedia
-      redirect_to edit_artist_path(@artist), notice: "Artist banner successfully updated from Wikipedia."
+      redirect_back fallback_location: edit_artist_path(@artist), notice: "Artist banner successfully updated from Wikipedia."
     else
-      redirect_to edit_artist_path(@artist), alert: "Could not find a suitable Wikipedia image for this artist banner."
+      redirect_back fallback_location: edit_artist_path(@artist), alert: "Could not find a suitable Wikipedia image for this artist banner."
     end
   end
 
@@ -99,21 +99,21 @@ class ArtistsController < ApplicationController
   end
 
   def artist_params
-    params.require(:artist).permit(:name, :bio, :photo, :banner, :fun_facts)
+    params.require(:artist).permit(:name, :bio, :photo, :banner, :photo_url, :banner_url, :fun_facts)
   end
 
   def resize_uploaded_images
     if params.dig(:artist, :photo).present?
       uploaded_file = params[:artist][:photo]
       if uploaded_file.respond_to?(:tempfile) && uploaded_file.tempfile.present?
-        system("mogrify -resize '600x600>' -strip #{uploaded_file.tempfile.path}")
+        system("mogrify -resize '1600x1600>' -strip -quality 92 #{uploaded_file.tempfile.path}")
       end
     end
 
     if params.dig(:artist, :banner).present?
       uploaded_file = params[:artist][:banner]
       if uploaded_file.respond_to?(:tempfile) && uploaded_file.tempfile.present?
-        system("mogrify -resize '1600x>' -strip -quality 85 #{uploaded_file.tempfile.path}")
+        system("mogrify -resize '1600x>' -strip -quality 90 #{uploaded_file.tempfile.path}")
       end
     end
   end

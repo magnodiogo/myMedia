@@ -311,8 +311,8 @@ class Artist < ApplicationRecord
       temp_path = Rails.root.join("tmp", "photo-#{SecureRandom.hex(8)}.jpg")
       File.open(temp_path, "wb") { |f| f.write(file.read) }
       
-      # Resize image to max 600x600 and strip metadata to save disk space
-      system("mogrify -resize '600x600>' -strip #{temp_path}")
+      # Resize image to high resolution (max 1600x1600) and strip metadata
+      system("mogrify -resize '1600x1600>' -strip -quality 92 #{temp_path}")
       
       photo.attach(io: File.open(temp_path), filename: "artist-#{SecureRandom.hex(8)}.jpg", content_type: "image/jpeg")
       
@@ -332,7 +332,7 @@ class Artist < ApplicationRecord
       temp_path = Rails.root.join("tmp", "artist-banner-#{SecureRandom.hex(8)}.jpg")
       File.open(temp_path, "wb") { |f| f.write(file.read) }
 
-      system("mogrify -resize '1600x340^' -gravity center -extent 1600x340 -strip -quality 85 #{temp_path}")
+      system("mogrify -resize '1200x>' -strip -quality 90 #{temp_path}")
 
       banner.attach(io: File.open(temp_path), filename: "artist-banner-#{SecureRandom.hex(8)}.jpg", content_type: "image/jpeg")
 
