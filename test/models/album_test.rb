@@ -83,6 +83,26 @@ class AlbumTest < ActiveSupport::TestCase
     assert_equal release.cover_image.blob, album.display_cover.blob
   end
 
+  test "manual credits should accept liner notes style participant lines" do
+    album = albums(:kind_of_blue)
+    album.update!(
+      manual_credits_text: <<~TEXT
+        Eric Clapton – lead vocals, electric guitar, acoustic guitar, 12 string guitar, dobro, mandolin
+        Taj Mahal – banjo and harmonica on "Further on Down the Road"
+        Stephen "Doc" Kupka – baritone saxophone
+      TEXT
+    )
+
+    credits = album.album_credits.order(:person_name, :role)
+
+    assert_equal 9, credits.count
+    assert_includes credits.map(&:person_name), "Stephen \"Doc\" Kupka"
+    assert_includes credits.map { |credit| [credit.person_name, credit.role] }, ["Eric Clapton", "lead vocals"]
+    assert_includes credits.map { |credit| [credit.person_name, credit.role] }, ["Eric Clapton", "12 string guitar"]
+    assert_includes credits.map { |credit| [credit.person_name, credit.role] }, ["Taj Mahal", "banjo on \"Further on Down the Road\""]
+    assert_includes credits.map { |credit| [credit.person_name, credit.role] }, ["Taj Mahal", "harmonica on \"Further on Down the Road\""]
+  end
+
   test "should be invalid without title" do
     album = Album.new(artist: artists(:queen))
 

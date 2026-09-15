@@ -10,7 +10,6 @@ class AlbumsControllerTest < ActionDispatch::IntegrationTest
     @album = albums(:kind_of_blue)
     @media = media(:two)
     @cd = media_types(:one)
-    @lp = MediaType.for_release_format("LP")
     @track = Track.create!(
       media: @media,
       title: "So What",
@@ -121,8 +120,8 @@ class AlbumsControllerTest < ActionDispatch::IntegrationTest
     get edit_album_url(@album)
     assert_response :success
     assert_select "h1", text: "Edit Album"
-    assert_select "h3", text: "Album Releases"
-    assert_select "input[name*='[album_releases_attributes]'][name$='[title]']", minimum: 1
+    assert_select "h3", text: "Album Releases", count: 0
+    assert_select "input[name*='[album_releases_attributes]']", count: 0
   end
 
   test "admin should update album details and virtual attributes" do
@@ -163,81 +162,6 @@ class AlbumsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Miles Davis", credits.second.person_name
     assert_equal "Trumpet", credits.second.role
     assert_equal "manual", credits.second.source
-  end
-
-  test "admin should manage releases from album form" do
-    sign_in users(:two)
-    existing_release = @album.album_releases.create!(
-      title: "Kind of Blue Original LP",
-      release_year: 1959,
-      media_type: @lp,
-      label: "Columbia",
-      catalog_number: "CL 1355"
-    )
-
-    assert_difference("AlbumRelease.count", 1) do
-      patch album_url(@album), params: {
-        album: {
-          title: @album.title,
-          album_releases_attributes: {
-            "0" => {
-              id: existing_release.id,
-              title: "Kind of Blue Original Mono LP",
-              release_year: 1959,
-              media_type_id: @lp.id,
-              label: "Columbia",
-              catalog_number: "CL 1355",
-              position: 1
-            },
-            "1" => {
-              title: "Kind of Blue Legacy Edition",
-              release_year: 1997,
-              media_type_id: @cd.id,
-              label: "Columbia / Legacy",
-              catalog_number: "CK 64935",
-              info: "Remastered CD release.",
-              position: 2
-            },
-            "2" => {
-              title: "",
-              release_year: "",
-              media_type_id: "",
-              label: "",
-              catalog_number: "",
-              info: ""
-            }
-          }
-        }
-      }
-    end
-
-    assert_redirected_to album_url(@album.reload)
-    assert_equal "Kind of Blue Original Mono LP", existing_release.reload.title
-    new_release = @album.album_releases.find_by!(title: "Kind of Blue Legacy Edition")
-    assert_equal 1997, new_release.release_year
-    assert_equal @cd, new_release.media_type
-    assert_equal "Columbia / Legacy", new_release.label
-    assert_equal "CK 64935", new_release.catalog_number
-    assert_equal "Remastered CD release.", new_release.info
-  end
-
-  test "admin should remove releases from album form" do
-    sign_in users(:two)
-    release = @album.album_releases.create!(title: "Release To Remove", release_year: 2001, media_type: @cd)
-
-    assert_difference("AlbumRelease.count", -1) do
-      patch album_url(@album), params: {
-        album: {
-          title: @album.title,
-          album_releases_attributes: {
-            "0" => { id: release.id, title: release.title, _destroy: "1" }
-          }
-        }
-      }
-    end
-
-    assert_redirected_to album_url(@album.reload)
-    assert_not AlbumRelease.exists?(release.id)
   end
 
   test "common user should not get edit album page" do

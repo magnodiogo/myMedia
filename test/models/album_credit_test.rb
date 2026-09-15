@@ -29,6 +29,8 @@ class AlbumCreditTest < ActiveSupport::TestCase
   test "should classify credit category from role" do
     assert_equal "composer", AlbumCredit.category_for_role("Composer")
     assert_equal "musician", AlbumCredit.category_for_role("Bass (Electric)")
+    assert_equal "musician", AlbumCredit.category_for_role("baritone saxophone")
+    assert_equal "musician", AlbumCredit.category_for_role("trumpet")
     assert_equal "technical", AlbumCredit.category_for_role("Producer")
   end
 end

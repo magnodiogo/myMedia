@@ -295,12 +295,9 @@ class Album < ApplicationRecord
   end
 
   def persist_manual_credits
-    parsed_credits = @manual_credits_text.to_s.split("\n").map(&:strip).reject(&:empty?).map do |line|
-      parts = line.split(/\s*-\s*/, 2)
-      next nil if parts.size < 2
-
-      { person_name: parts[0].strip, role: parts[1].strip }
-    end.compact
+    parsed_credits = @manual_credits_text.to_s.split("\n").flat_map do |line|
+      parse_manual_credit_line(line)
+    end
 
     self.album_credits = parsed_credits.map do |pc|
       person = CreditPerson.where("LOWER(name) = ?", pc[:person_name].downcase).first || CreditPerson.create!(name: pc[:person_name])
@@ -308,9 +305,45 @@ class Album < ApplicationRecord
         credit_person: person,
         person_name: pc[:person_name],
         role: pc[:role],
-        source: "manual"
+        source: "manual",
+        raw_data: { "line" => pc[:source_line] }
       )
     end
+  end
+
+  def parse_manual_credit_line(line)
+    source_line = line.to_s.strip
+    return [] if source_line.blank?
+
+    parts = source_line.split(/\s+(?:-|\u2013|\u2014)\s+/, 2)
+    return [] if parts.size < 2
+
+    person_name = parts[0].strip
+    roles = split_manual_credit_roles(parts[1])
+    roles.map do |role|
+      {
+        person_name: person_name,
+        role: role,
+        source_line: source_line
+      }
+    end
+  end
+
+  def split_manual_credit_roles(roles_text)
+    text = roles_text.to_s.strip
+    return [] if text.blank?
+
+    note = nil
+    text = text.sub(/\s+(on\s+.+)\z/i) do
+      note = Regexp.last_match(1).strip
+      ""
+    end
+
+    text.split(/\s*,\s*/).flat_map do |role_group|
+      role_group.split(/\s+(?:and|e)\s+/i)
+    end.map do |role|
+      [role.strip, note].compact.join(" ")
+    end.reject(&:blank?)
   end
 
   def slug_candidates
