@@ -49,6 +49,7 @@ Rails.application.routes.draw do
     end
   end
   patch "preferences", to: "preferences#update"
+  patch "locale", to: "locales#update", as: :locale
 
   namespace :admin do
     resource :settings, only: [:show, :update]
