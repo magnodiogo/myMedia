@@ -15,14 +15,12 @@ class AlbumsController < ApplicationController
   end
 
   def edit
-    build_album_release_rows
   end
 
   def update
     if @album.update(album_params)
       redirect_to album_path(@album), notice: "Album was successfully updated."
     else
-      build_album_release_rows
       render :edit, status: :unprocessable_entity
     end
   end
@@ -77,17 +75,8 @@ class AlbumsController < ApplicationController
       :title, :release_year, :original_release_date, :album_type,
       :formatted_duration, :summary, :allmusic_url,
       :genre_names, :style_names, :recording_location_names,
-      :cover_image, :manual_credits_text, :metadata_status, :fun_facts,
-      album_releases_attributes: [
-        :id, :title, :release_year, :media_type_id, :label, :catalog_number,
-        :allmusic_url, :info, :position, :cover_image, :_destroy
-      ]
+      :cover_image, :manual_credits_text, :metadata_status, :fun_facts
     )
-  end
-
-  def build_album_release_rows
-    blanks_needed = [3 - @album.album_releases.reject(&:persisted?).size, 0].max
-    blanks_needed.times { @album.album_releases.build(position: @album.album_releases.size) }
   end
 
   def resize_uploaded_cover

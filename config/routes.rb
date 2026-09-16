@@ -60,7 +60,29 @@ Rails.application.routes.draw do
     namespace :v1 do
       post "auth/login", to: "auth#login"
       get "auth/me", to: "auth#me"
-      resources :user_media, only: [:index, :show]
+      get "barcode_lookup", to: "media#barcode_lookup"
+      post "media/import_and_add", to: "media#import_and_add"
+      resources :user_media, only: [:index, :show, :update] do
+        collection do
+          get :changes
+        end
+
+        member do
+          get :album_info
+          get :collection
+          get :credits
+          get :tracks
+        end
+
+        get "tracks/:track_id/lyrics", to: "user_media#track_lyrics", on: :member
+      end
+
+      resources :artists, only: [:show] do
+        member do
+          get :discography
+          post "album_releases/:release_id/add_to_collection", to: "artists#add_release_to_collection"
+        end
+      end
     end
   end
 

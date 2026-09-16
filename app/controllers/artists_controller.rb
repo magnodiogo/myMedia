@@ -80,13 +80,9 @@ class ArtistsController < ApplicationController
   end
 
   def load_discography
-    result = @artist.load_discography
+    ArtistDiscographyImportJob.perform_later(@artist)
 
-    if result[:error].present?
-      redirect_to artist_path(@artist), alert: result[:error]
-    else
-      redirect_to artist_path(@artist), notice: "Discography loaded: #{result[:imported]} imported, #{result[:updated]} updated, #{result[:skipped]} skipped."
-    end
+    redirect_to artist_path(@artist), notice: "Discography import started."
   end
 
   def load_album_data
